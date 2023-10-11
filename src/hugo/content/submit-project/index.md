@@ -46,16 +46,8 @@ project:
   latest_release: 'https://github.com/user/project/releases/latest'
   # (optional) Link to the forum where your community has conversations.
   forum: 'https://forums.ohwr.org/c/project'
-  # (optional) News feed of your project.
-  news:
-    - title: 'News title here'
-      date: 2020-07-30
-      # (optional) Image of the news.
-      image: 'https://your.news.com/img.png'
-      # (optional) The Markdown content of the news.
-      content: 'Quisque sollicitudin velit ac [luctus](https://foo.com/bar).'
-    - title: 'News title here'
-      date: 2018-01-11
+  # (optional) Link to the Markdown news feed of your project.
+  news: 'https://raw.githubusercontent.com/wiki/user/project/news.md'
   # (optional) Addtional links.
   links:
     - name: 'Link text here'
