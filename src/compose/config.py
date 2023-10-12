@@ -16,21 +16,20 @@ from urllib.parse import urlparse
 
 import yaml
 from pydantic import BaseModel, ValidationError
-from url import URL
 
 
 class ConfigError(Exception):
     """Failed to load, parse or validate configuration."""
 
 
-class LinkConfig(BaseModel, extra='forbid'):
+class Link(BaseModel, extra='forbid'):
     """Parses and validates link configuration."""
 
     name: str
-    url: URL
+    url: str
 
 
-class LicenseConfig(LinkConfig):
+class License(Link):
     """Parses, validates license configuration."""
 
     @classmethod
@@ -55,16 +54,16 @@ class LicenseConfig(LinkConfig):
         raise ConfigError(msg.format(license_id))
 
 
-class NewsConfig(BaseModel, extra='forbid'):
+class News(BaseModel, extra='forbid'):
     """Parses and validates news configuration."""
 
     title: str
     date: date
-    image: Optional[URL] = None
+    image: Optional[str] = None
     content: Optional[str] = None  # noqa: WPS110
 
 
-class ProjConfig(BaseModel, extra='forbid'):
+class Project(BaseModel, extra='forbid'):
     """Loads, parses and validates project sources configuration."""
 
     id: str
@@ -72,17 +71,17 @@ class ProjConfig(BaseModel, extra='forbid'):
     featured: Optional[bool] = False
     name: str
     description: str
-    website: URL
-    licenses: list[LicenseConfig]
-    images: Optional[list[URL]] = None
-    documentation: Optional[URL] = None
-    issues: Optional[URL] = None
-    latest_release: Optional[URL] = None
-    forum: Optional[URL] = None
-    links: Optional[list[LinkConfig]] = None
+    website: str
+    licenses: list[License]
+    images: Optional[list[str]] = None
+    documentation: Optional[str] = None
+    issues: Optional[str] = None
+    latest_release: Optional[str] = None
+    forum: Optional[str] = None
+    links: Optional[list[Link]] = None
     categories: Optional[list[str]] = None
     tags: Optional[list[str]] = None
-    news: Optional[list[NewsConfig]] = None
+    news: Optional[list[News]] = None
 
     def __init__(self, licenses: list[str], spdx_license_list: dict, **kwargs):
         """
@@ -96,7 +95,7 @@ class ProjConfig(BaseModel, extra='forbid'):
         license_configs = []
         for license_id in licenses:
             license_configs.append(
-                LicenseConfig.from_id(license_id, spdx_license_list),
+                License.from_id(license_id, spdx_license_list),
             )
         super().__init__(licenses=license_configs, **kwargs)
 

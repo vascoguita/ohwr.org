@@ -9,8 +9,8 @@ import subprocess  # noqa: S404
 from dataclasses import dataclass, field
 from logging import info
 
+import config
 import yaml
-from config import NewsConfig, ProjConfig
 
 
 @dataclass
@@ -48,23 +48,23 @@ class ProjSources(Sources):
     """Writes Hugo data and content file for a project page."""
 
     @classmethod
-    def from_config(cls, config: ProjConfig):
+    def from_config(cls, proj_config: config.Project):
         """
         Construct a ProjSources object from the configuration.
 
         Parameters:
-            config: project configuration.
+            proj_config: project configuration.
 
         Returns:
             ProjSources object.
         """
         sources = []
-        if config.news is not None:
-            sources.append(NewsListSources.from_config(config))
+        if proj_config.news is not None:
+            sources.append(NewsListSources.from_config(proj_config))
         return cls(
-            '{0}.yaml'.format(os.path.join('data/projects', config.id)),
-            '{0}.md'.format(os.path.join('content/projects', config.id)),
-            config.model_dump(exclude_none=True, exclude='news'),
+            '{0}.yaml'.format(os.path.join('data/projects', proj_config.id)),
+            '{0}.md'.format(os.path.join('content/projects', proj_config.id)),
+            proj_config.model_dump(exclude_none=True, exclude='news'),
             sources,
         )
 
@@ -73,25 +73,29 @@ class NewsListSources(Sources):
     """Writes Hugo data and content file for a news list page."""
 
     @classmethod
-    def from_config(cls, config: ProjConfig):
+    def from_config(cls, proj_config: config.Project):
         """
         Construct a NewsListSources object from the configuration.
 
         Parameters:
-            config: project configuration.
+            proj_config: project configuration.
 
         Returns:
             NewsListSources object.
         """
         sources = []
-        for index, news in enumerate(config.news):
+        for index, news in enumerate(proj_config.news):
             sources.append(
-                NewsSources.from_config(news, config.id, str(index+1)),
+                NewsSources.from_config(news, proj_config.id, str(index+1)),
             )
         return cls(
-            '{0}.yaml'.format(os.path.join('data/news', config.id, config.id)),
-            '{0}.md'.format(os.path.join('content/news', config.id, '_index')),
-            {'title': '{0} News'.format(config.name)},
+            '{0}.yaml'.format(
+                os.path.join('data/news', proj_config.id, proj_config.id),
+            ),
+            '{0}.md'.format(
+                os.path.join('content/news', proj_config.id, '_index'),
+            ),
+            {'title': '{0} News'.format(proj_config.name)},
             sources,
         )
 
@@ -100,12 +104,12 @@ class NewsSources(Sources):
     """Writes Hugo data and content file for a news page."""
 
     @classmethod
-    def from_config(cls, config: NewsConfig, proj_id: str, news_id: str):
+    def from_config(cls, news_config: config.News, proj_id: str, news_id: str):
         """
         Construct a NewsSources object from the configuration.
 
         Parameters:
-            config: news page configuration.
+            news_config: news page configuration.
             proj_id: identifier of the project the news belong to.
             news_id: news page identifier.
 
@@ -115,5 +119,5 @@ class NewsSources(Sources):
         return cls(
             '{0}.yaml'.format(os.path.join('data/news', proj_id, news_id)),
             '{0}.md'.format(os.path.join('content/news', proj_id, news_id)),
-            config.model_dump(exclude_none=True),
+            news_config.model_dump(exclude_none=True),
         )
