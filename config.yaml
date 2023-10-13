@@ -7,28 +7,20 @@
 log_level: 'INFO'
 
 # SPDX JSON license list URL
-license_list: 'https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json'  # yamllint disable-line rule:line-length
+licenses: 'licenses.json'  # yamllint disable-line rule:line-length
 
 # Hugo sources directory
 source: './src/hugo'
 
 # Projects to include in the OHWR website.
 projects:
-  # Unique project identifier.
-  # The project page URL depends on the id
-  # (i.e. http://ohwr.org/projects/<id>/).
-  - id: 'svec'
     # URL to the Git repository of the project.
     # The Git repository must contain a .ohwr.yaml file.
-    url: 'https://github.com/vascoguita/svec.git'
+  - repo: 'https://github.com/vascoguita/svec.git'
     # (optional) Show project as featured.
     featured: true
-  - id: 'spec'
-    url: 'https://github.com/vascoguita/spec.git'
+  - repo: 'https://github.com/vascoguita/spec.git'
     featured: true
-  - id: 'fmc-tdc'
-    url: 'https://github.com/vascoguita/fmc-tdc.git'
-  - id: 'fmc-delay-1ns-8cha'
-    url: 'https://github.com/vascoguita/fmc-delay-1ns-8cha.git'
-  - id: 'fmc-adc-100m14b4cha'
-    url: 'https://github.com/vascoguita/fmc-adc-100m14b4cha.git'
+  - repo: 'https://github.com/vascoguita/fmc-tdc.git'
+  - repo: 'https://github.com/vascoguita/fmc-delay-1ns-8cha.git'
+  - repo: 'https://github.com/vascoguita/fmc-adc-100m14b4cha.git'

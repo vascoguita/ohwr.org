@@ -9,13 +9,13 @@ import subprocess  # noqa: S404
 from datetime import date
 from logging import debug, info
 from tempfile import TemporaryDirectory
-from typing import Optional, TextIO, Union
+from typing import Literal, Optional, TextIO, Union
 from urllib import request
 from urllib.error import URLError
 from urllib.parse import urlparse
 
 import yaml
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, HttpUrl, ValidationError
 
 
 class ConfigError(Exception):
@@ -26,32 +26,7 @@ class Link(BaseModel, extra='forbid'):
     """Parses and validates link configuration."""
 
     name: str
-    url: str
-
-
-class License(Link):
-    """Parses, validates license configuration."""
-
-    @classmethod
-    def from_id(cls, license_id: str, spdx_license_list: dict):
-        """
-        Construct a LicenseConfig object from an SPDX license identifier.
-
-        Parameters:
-            license_id: SPDX license identifier.
-            spdx_license_list: SPDX license data list.
-
-        Returns:
-            LicenseConfig object.
-
-        Raises:
-            ConfigError: if license_id is not a valid SPDX license identifier.
-        """
-        for license in spdx_license_list['licenses']:
-            if license['licenseId'] == license_id:
-                return cls(name=license['name'], url=license['reference'])
-        msg = 'License ID is not a valid SPDX license ID: {0}'
-        raise ConfigError(msg.format(license_id))
+    url: HttpUrl
 
 
 class News(BaseModel, extra='forbid'):
@@ -59,148 +34,114 @@ class News(BaseModel, extra='forbid'):
 
     title: str
     date: date
-    image: Optional[str] = None
+    image: Optional[HttpUrl] = None
     content: Optional[str] = None  # noqa: WPS110
 
 
-class Project(BaseModel, extra='forbid'):
-    """Loads, parses and validates project sources configuration."""
+class Config(BaseModel, extra='forbid'):
+    """Loads, parses and validates configuration."""
 
-    id: str
-    url: str
-    featured: Optional[bool] = False
+    version: Literal['1.0.0']
     name: str
     description: str
-    website: str
-    licenses: list[License]
-    images: Optional[list[str]] = None
-    documentation: Optional[str] = None
-    issues: Optional[str] = None
-    latest_release: Optional[str] = None
-    forum: Optional[str] = None
+    website: HttpUrl
+    licenses: list[str]
+    images: Optional[list[HttpUrl]] = None
+    documentation: Optional[HttpUrl] = None
+    issues: Optional[HttpUrl] = None
+    latest_release: Optional[HttpUrl] = None
+    forum: Optional[HttpUrl] = None
     links: Optional[list[Link]] = None
     categories: Optional[list[str]] = None
     tags: Optional[list[str]] = None
     news: Optional[list[News]] = None
 
-    def __init__(self, licenses: list[str], spdx_license_list: dict, **kwargs):
-        """
-        Construct a ProjConfig object.
-
-        Parameters:
-            licenses: SPDX license identifiers.
-            spdx_license_list: SPDX license data list.
-            kwargs: project configuration attributes
-        """
-        license_configs = []
-        for license_id in licenses:
-            license_configs.append(
-                License.from_id(license_id, spdx_license_list),
-            )
-        super().__init__(licenses=license_configs, **kwargs)
-
     @classmethod
-    def from_url(cls, url: str, **kwargs):
+    def from_repo(cls, repo: str):
         """
-        Load project sources configuration from a URL.
+        Load configuration from a git repository.
 
         Parameters:
-            url: git repository URL.
-            kwargs: id and type (optional).
+            repo: git repository URL.
 
         Returns:
-            ProjConfig object.
-        """
-        if urlparse(url).hostname == 'github.com':
-            return cls.from_github(url=url, **kwargs)
-        return cls.from_repo(url=url, **kwargs)
-
-    @classmethod
-    def from_repo(cls, url: str, **kwargs):
-        """
-        Load project sources configuration from a git repository.
-
-        Parameters:
-            url: git repository URL.
-            kwargs: id and type (optional).
-
-        Returns:
-            ProjConfig object.
+            Config object.
 
         Raises:
             ConfigError: if loading the configuration fails.
         """
-        info('Loading .ohwr.yaml from {0} with git clone...'.format(url))
+        if urlparse(repo).hostname == 'github.com':
+            return cls.from_github(repo)
+        info('Loading .ohwr.yaml from {0} with git clone...'.format(repo))
         tmpdir = TemporaryDirectory().name
         try:
             subprocess.check_output(
-                'git clone --depth 1 {0} {1}'.format(url, tmpdir),
+                'git clone --depth 1 {0} {1}'.format(repo, tmpdir),
                 stderr=subprocess.STDOUT,
                 shell=True,  # noqa: S602
             )
         except subprocess.CalledProcessError as error:
             msg = 'Failed to clone {0}:\n↳ {1}'
-            raise ConfigError(msg.format(url, error))
+            raise ConfigError(msg.format(repo, error))
         try:
             with open(os.path.join(tmpdir, '.ohwr.yaml')) as config_file:
-                return cls.from_yaml(config_file, url=url, **kwargs)
+                return cls.from_yaml(config_file)
         except FileNotFoundError:
             msg = 'No .ohwr.yaml file found in {0}.'
-            raise ConfigError(msg.format(url))
+            raise ConfigError(msg.format(repo))
 
     @classmethod
-    def from_github(cls, url: str, **kwargs):
+    def from_github(cls, repo: str):
         """
-        Load project sources configuration from a GitHub repository.
+        Load configuration from a GitHub repository.
 
         Parameters:
-            url: git repository URL.
-            kwargs: id and type (optional).
+            repo: git repository URL.
 
         Returns:
-            ProjConfig object.
+            Config object.
 
         Raises:
             ConfigError: if loading the configuration fails.
         """
-        info('Loading .ohwr.yaml from {0} with GitHub API...'.format(url))
-        repo = urlparse(url).path.removeprefix('/').removesuffix('.git')
+        info('Loading .ohwr.yaml from {0} with GitHub API...'.format(repo))
         fmt = 'https://api.github.com/repos/{0}/contents/.ohwr.yaml'
         req = request.Request(
-            fmt.format(repo),
+            fmt.format(
+                urlparse(repo).path.removeprefix('/').removesuffix('.git')
+            ),
             headers={'Accept': 'application/vnd.github.v3.raw'},
         )
         try:
             with request.urlopen(req) as response:  # noqa: S310
-                return cls.from_yaml(response, url=url, **kwargs)
+                return cls.from_yaml(response)
         except URLError as error:
             msg = 'Failed to request {0}:\n↳ {1}'
             raise ConfigError(msg.format(req.full_url, error))
 
     @classmethod
-    def from_yaml(cls, config_yaml: Union[str, TextIO], **kwargs):
+    def from_yaml(cls, yaml_config: Union[str, TextIO]):
         """
-        Parse and validate project sources YAML configuration.
+        Parse and validate YAML configuration.
 
         Parameters:
             config_yaml: YAML file or string.
-            kwargs: id, url and type (optional).
 
         Returns:
-            ProjConfig object.
+            Config object.
 
         Raises:
-            ConfigError: if parsing or validating the configuration fails.
+            ConfigError: if loading or validating the configuration fails.
         """
-        debug('Parsing {0}/.ohwr.yaml...'.format(kwargs['id']))
+        debug('Parsing YAML configuration...')
         try:
-            config = yaml.safe_load(config_yaml)
+            config = yaml.safe_load(yaml_config)
         except yaml.YAMLError as yaml_error:
-            msg = 'Failed to load YAML configuration:\n↳ {0}'
+            msg = 'Failed to parse YAML configuration:\n↳ {0}'
             raise ConfigError(msg.format(yaml_error))
-        info('Validating {0}/.ohwr.yaml...'.format(kwargs['id']))
+        info('Validating YAML configuration...')
         try:
-            return cls(**config['project'], **kwargs)
+            return cls(**config)
         except (ValidationError, KeyError) as validation_error:
             msg = 'YAML configuration is not valid:\n↳ {0}'
             raise ConfigError(msg.format(validation_error))

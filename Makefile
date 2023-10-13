@@ -14,9 +14,12 @@ all: test build
 ###############################################################################
 
 .PHONY: build
-build:
+build: licenses.json
 	python ${COMPOSE} ${CURDIR}/config.yaml
 	hugo --gc --minify --source ${HUGO} --destination ${PUBLIC}
+
+licenses.json:
+	curl https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json -O
 
 ###############################################################################
 # Run
