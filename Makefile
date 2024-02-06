@@ -5,6 +5,7 @@
 HUGO	= ${CURDIR}/src/hugo
 COMPOSE	= ${CURDIR}/src/compose
 PUBLIC	= ${CURDIR}/public
+TESTS	= ${CURDIR}/test
 
 .PHONY: all
 all: test build
@@ -31,7 +32,7 @@ run:
 ###############################################################################
 
 .PHONY: test
-test: lint-reuse lint-yaml lint-makefile lint-python lint-markdown
+test: lint-reuse lint-yaml lint-makefile lint-python lint-markdown test-compose
 
 .PHONY: lint-reuse
 lint-reuse:
@@ -52,6 +53,9 @@ lint-python:
 .PHONY: lint-markdown
 lint-markdown:
 	markdownlint-cli2 ${CURDIR}/**/*.md -c
+
+test-compose:
+	pytest ${TESTS}
 
 ###############################################################################
 # Clean

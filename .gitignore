@@ -10,6 +10,7 @@ public/
 # Python
 __pycache__/
 .venv/
+.pytest_cache/
 
 # Composer
 /src/hugo/data/
