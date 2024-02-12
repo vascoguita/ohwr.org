@@ -15,3 +15,5 @@ jobs:
         uses: actions/checkout@v3
       - name: Python Lint
         uses: wemake-services/wemake-python-styleguide@0.18.0
+        with:
+          path: './src/compose'
