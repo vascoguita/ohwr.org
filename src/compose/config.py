@@ -91,19 +91,7 @@ ListLinkConfigWithField = Annotated[list[LinkConfig], Field(min_length=1)]
 class LicenseValidator(object):
     """Checks if a string is a valid SPDX license identifier."""
 
-    _instance = None
     _spdx_license_list = None
-
-    def __new__(cls):
-        """
-        Create an instance of LicenseValidator if it doesn't already exist.
-
-        Returns:
-            LicenseValidator singleton instance.
-        """
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     @classmethod
     def config(cls, license_list_path: str):

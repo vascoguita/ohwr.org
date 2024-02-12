@@ -12,8 +12,7 @@ from config import LinkConfig, ProjConfig, LicenseValidator
 from unittest.mock import Mock, patch
 from urllib.error import URLError
 
-licenseValidator = LicenseValidator()
-licenseValidator.config('./third_party/license-list-data/json/licenses.json')
+LicenseValidator.config('./third_party/license-list-data/json/licenses.json')
 
 def test_link_config_extra_forbidden():
     with pytest.raises(ValidationError) as exc_info:
