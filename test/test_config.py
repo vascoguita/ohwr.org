@@ -8,9 +8,12 @@ from http import HTTPStatus
 from urllib import request
 from pydantic import HttpUrl, ValidationError
 import pytest
-from config import LinkConfig, ProjConfig
+from config import LinkConfig, ProjConfig, LicenseValidator
 from unittest.mock import Mock, patch
 from urllib.error import URLError
+
+licenseValidator = LicenseValidator()
+licenseValidator.config('./third_party/license-list-data/json/licenses.json')
 
 def test_link_config_extra_forbidden():
     with pytest.raises(ValidationError) as exc_info:
@@ -160,7 +163,7 @@ def test_proj_config_extra_forbidden():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
@@ -181,7 +184,7 @@ def test_proj_config_version():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
         assert config.version == '1.0.0'
@@ -193,7 +196,7 @@ def test_proj_config_version_literal_error():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
@@ -209,12 +212,12 @@ def test_proj_config_version_missing():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
         "version\n"
-        "  Field required [type=missing, input_value={'name': 'Project Name', ...s': ['CERN-OHL-W-2.0+']}, input_type=dict]\n"
+        "  Field required [type=missing, input_value={'name': 'Project Name', ...es': ['CERN-OHL-W-2.0']}, input_type=dict]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -230,7 +233,7 @@ def test_proj_config_name():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
         assert config.name == 'Project Name'
@@ -242,7 +245,7 @@ def test_proj_config_name_string_type():
             name=1234.56,
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
@@ -259,7 +262,7 @@ def test_proj_config_name_empty():
             name='',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
     
     error_message = (
@@ -276,7 +279,7 @@ def test_proj_config_name_blank():
             name='   ',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
     
     error_message = (
@@ -292,12 +295,12 @@ def test_proj_config_name_missing():
             version='1.0.0',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
         "name\n"
-        "  Field required [type=missing, input_value={'version': '1.0.0', 'des...s': ['CERN-OHL-W-2.0+']}, input_type=dict]\n"
+        "  Field required [type=missing, input_value={'version': '1.0.0', 'des...es': ['CERN-OHL-W-2.0']}, input_type=dict]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -313,7 +316,7 @@ def test_proj_config_description():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
         assert config.description == 'Lorem ipsum dolor sit amet.'
@@ -325,7 +328,7 @@ def test_proj_config_description_string_type():
             name='Project Name',
             description=1234.56,
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
@@ -342,7 +345,7 @@ def test_proj_config_description_empty():
             name='Project Name',
             description='',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
     
     error_message = (
@@ -359,7 +362,7 @@ def test_proj_config_description_blank():
             name='Project Name',
             description='   ',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
     
     error_message = (
@@ -375,12 +378,12 @@ def test_proj_config_description_missing():
             version='1.0.0',
             name='Project Name',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
         "description\n"
-        "  Field required [type=missing, input_value={'version': '1.0.0', 'nam...s': ['CERN-OHL-W-2.0+']}, input_type=dict]\n"
+        "  Field required [type=missing, input_value={'version': '1.0.0', 'nam...es': ['CERN-OHL-W-2.0']}, input_type=dict]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -396,7 +399,7 @@ def test_proj_config_website():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
         assert config.website == HttpUrl('https://your.project.com')
@@ -408,7 +411,7 @@ def test_proj_config_website_url_parsing():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='invalid-url',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
@@ -424,12 +427,12 @@ def test_proj_config_website_missing():
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
     error_message = (
         "website\n"
-        "  Field required [type=missing, input_value={'version': '1.0.0', 'nam...s': ['CERN-OHL-W-2.0+']}, input_type=dict]\n"
+        "  Field required [type=missing, input_value={'version': '1.0.0', 'nam...es': ['CERN-OHL-W-2.0']}, input_type=dict]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -444,7 +447,7 @@ def test_proj_config_website_unreachable():
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
                 website='https://unreachable.url',
-                licenses=['CERN-OHL-W-2.0+'],
+                licenses=['CERN-OHL-W-2.0'],
             )
         
         error_message = (
@@ -465,10 +468,10 @@ def test_proj_config_licenses():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
         )
 
-        assert config.licenses == ['CERN-OHL-W-2.0+']
+        assert config.licenses == ['CERN-OHL-W-2.0']
 
 def test_proj_config_licenses_list_type():
     with pytest.raises(ValidationError) as exc_info:
@@ -565,7 +568,7 @@ def test_proj_config_images():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             images=['https://your.project.com/img.png'],
         )
 
@@ -578,7 +581,7 @@ def test_proj_config_images_list_type():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             images='abcd',
         )
 
@@ -596,7 +599,7 @@ def test_proj_config_images_empty():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             images=[]
         )
     
@@ -614,7 +617,7 @@ def test_proj_config_images_url_parsing():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             images=['invalid-url']
         )
 
@@ -635,7 +638,7 @@ def test_proj_config_images_unreachable():
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
                 website='https://your.project.com',
-                licenses=['CERN-OHL-W-2.0+'],
+                licenses=['CERN-OHL-W-2.0'],
                 images=['https://unreachable.url'],
             )
         
@@ -657,7 +660,7 @@ def test_proj_config_documentation():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             documentation='https://your.project.com/wiki',
         )
 
@@ -670,7 +673,7 @@ def test_proj_config_documentation_url_parsing():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             documentation='invalid-url',
         )
 
@@ -691,7 +694,7 @@ def test_proj_config_documentation_unreachable():
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
                 website='https://your.project.com',
-                licenses=['CERN-OHL-W-2.0+'],
+                licenses=['CERN-OHL-W-2.0'],
                 documentation='https://unreachable.url',
             )
         
@@ -713,7 +716,7 @@ def test_proj_config_issues():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             issues='https://your.project.com/issues',
         )
 
@@ -726,7 +729,7 @@ def test_proj_config_issues_url_parsing():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             issues='invalid-url',
         )
 
@@ -747,7 +750,7 @@ def test_proj_config_issues_unreachable():
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
                 website='https://your.project.com',
-                licenses=['CERN-OHL-W-2.0+'],
+                licenses=['CERN-OHL-W-2.0'],
                 issues='https://unreachable.url',
             )
         
@@ -769,7 +772,7 @@ def test_proj_config_latest_release():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             latest_release='https://your.project.com/latest_release',
         )
 
@@ -782,7 +785,7 @@ def test_proj_config_latest_release_url_parsing():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             latest_release='invalid-url',
         )
 
@@ -803,7 +806,7 @@ def test_proj_config_latest_release_unreachable():
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
                 website='https://your.project.com',
-                licenses=['CERN-OHL-W-2.0+'],
+                licenses=['CERN-OHL-W-2.0'],
                 latest_release='https://unreachable.url',
             )
         
@@ -825,7 +828,7 @@ def test_proj_config_forum():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             forum='https://your.project.com/forum',
         )
 
@@ -838,7 +841,7 @@ def test_proj_config_forum_url_parsing():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             forum='invalid-url',
         )
 
@@ -859,7 +862,7 @@ def test_proj_config_forum_unreachable():
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
                 website='https://your.project.com',
-                licenses=['CERN-OHL-W-2.0+'],
+                licenses=['CERN-OHL-W-2.0'],
                 forum='https://unreachable.url',
             )
         
@@ -881,7 +884,7 @@ def test_proj_config_newsfeed():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             newsfeed='https://your.project.com/newsfeed',
         )
 
@@ -894,7 +897,7 @@ def test_proj_config_newsfeed_url_parsing():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             newsfeed='invalid-url',
         )
 
@@ -915,7 +918,7 @@ def test_proj_config_newsfeed_unreachable():
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
                 website='https://your.project.com',
-                licenses=['CERN-OHL-W-2.0+'],
+                licenses=['CERN-OHL-W-2.0'],
                 newsfeed='https://unreachable.url',
             )
         
@@ -937,7 +940,7 @@ def test_proj_config_links():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             links=[{'name' : 'Link 1', 'url' : 'https://your.project.com/link1'}]
         )
 
@@ -950,7 +953,7 @@ def test_proj_config_links_list_type():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             links='abcd',
         )
 
@@ -968,7 +971,7 @@ def test_proj_config_links_empty():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             links=[]
         )
     
@@ -986,7 +989,7 @@ def test_proj_config_links_model_type():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             links=['invalid-link'],
         )
 
@@ -1007,7 +1010,7 @@ def test_proj_config_links_unreachable():
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
                 website='https://your.project.com',
-                licenses=['CERN-OHL-W-2.0+'],
+                licenses=['CERN-OHL-W-2.0'],
                 links=[{'name' : 'Link 1', 'url' : 'https://unreachable.url'}],
             )
         
@@ -1029,7 +1032,7 @@ def test_proj_config_categories():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             categories=['Category 1'],
         )
 
@@ -1042,7 +1045,7 @@ def test_proj_config_categories_list_type():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             categories='abcd'
         )
 
@@ -1060,7 +1063,7 @@ def test_proj_config_categories_empty():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             categories=[],
         )
     
@@ -1078,7 +1081,7 @@ def test_proj_config_categories_empty_string():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             categories=[''],
         )
     
@@ -1096,7 +1099,7 @@ def test_proj_config_categories_blank_string():
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0+'],
+            licenses=['CERN-OHL-W-2.0'],
             categories=['   '],
         )
     

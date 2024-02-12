@@ -5,6 +5,7 @@
 """Load configuration."""
 
 
+import json
 from http import HTTPMethod, HTTPStatus
 from typing import Annotated, Any, Literal, Optional
 from urllib import request
@@ -36,12 +37,12 @@ ListHttpUrlWithField = Annotated[list[HttpUrl], Field(min_length=1)]
 
 
 class UrlValidator(object):
-    """Checks if URL is reachable."""
+    """Checks if a URL is reachable."""
 
     @classmethod
     def url_must_be_reachable(cls, url: str) -> str:
         """
-        Check if URL is reachable.
+        Check if the URL is reachable.
 
         Parameters:
             url: URL string.
@@ -71,20 +72,70 @@ class LinkConfig(BaseModel, extra='forbid'):
 
     @field_validator('url')
     @classmethod
-    def url_must_be_reachable(cls, url: str) -> str:
+    def validate_url(cls, field_value: Any) -> Any:
         """
-        Check if URL is reachable.
+        Check if the URL is reachable.
 
         Parameters:
-            url: URL string.
+            field_value: URL string.
 
         Returns:
             URL string.
         """
-        return UrlValidator.url_must_be_reachable(url)
+        return UrlValidator.url_must_be_reachable(field_value)
 
 
 ListLinkConfigWithField = Annotated[list[LinkConfig], Field(min_length=1)]
+
+
+class LicenseValidator(object):
+    """Checks if a string is a valid SPDX license identifier."""
+
+    _instance = None
+    _spdx_license_list = None
+
+    def __new__(cls):
+        """
+        Create an instance of LicenseValidator if it doesn't already exist.
+
+        Returns:
+            LicenseValidator singleton instance.
+        """
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    @classmethod
+    def config(cls, license_list_path: str):
+        """
+        Configure the SPDX license list from a JSON file.
+
+        Parameters:
+            license_list_path: file path to the SPDX JSON license list.
+        """
+        with open(license_list_path, 'r') as license_list_file:
+            cls._spdx_license_list = json.load(license_list_file)
+
+    @classmethod
+    def is_valid_spdx_license(cls, license: str) -> str:
+        """
+        Check if the string is a valid SPDX license identifier.
+
+        Parameters:
+            license: license identifier string.
+
+        Returns:
+            license identifier string.
+
+        Raises:
+            ValueError: if the string is not a valid SPDX license identifier.
+        """
+        if cls._spdx_license_list:
+            for spdx_license in cls._spdx_license_list['licenses']:
+                if spdx_license['licenseId'] == license:
+                    return license
+        error_fmt = "Unknown SPDX license identifier: '{0}'."
+        raise ValueError(error_fmt.format(license))
 
 
 class ProjConfig(BaseModel, extra='forbid'):
@@ -114,9 +165,9 @@ class ProjConfig(BaseModel, extra='forbid'):
         'newsfeed',
     )
     @classmethod
-    def urls_must_be_reachable(cls, field_value: Any) -> Any:
+    def validate_urls(cls, field_value: Any) -> Any:
         """
-        Check if URLs are reachable.
+        Check if the URLs are reachable.
 
         Parameters:
             field_value: URL string or list of URL strings.
@@ -129,4 +180,20 @@ class ProjConfig(BaseModel, extra='forbid'):
                 UrlValidator.url_must_be_reachable(url)
         else:
             UrlValidator.url_must_be_reachable(field_value)
+        return field_value
+
+    @field_validator('licenses')
+    @classmethod
+    def validate_licenses(cls, field_value: Any) -> Any:
+        """
+        Check if the licences are valid SPDX license identifiers.
+
+        Parameters:
+            field_value: list of license identifiers.
+
+        Returns:
+            list of license identifiers.
+        """
+        for url in field_value:
+            LicenseValidator.is_valid_spdx_license(url)
         return field_value

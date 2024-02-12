@@ -40,7 +40,7 @@ lint-reuse:
 
 .PHONY: lint-yaml
 lint-yaml:
-	yamllint -d '{extends: default, ignore-from-file: .gitignore}' .
+	yamllint `find ${CURDIR} -name '*.yaml' -not -path '${CURDIR}/.venv/*'`
 
 .PHONY: lint-makefile
 lint-makefile:
@@ -52,7 +52,8 @@ lint-python:
 
 .PHONY: lint-markdown
 lint-markdown:
-	markdownlint-cli2 "${CURDIR}/**/*.md" "#${CURDIR}/.venv"
+	markdownlint-cli2 '${CURDIR}/**/*.md' '#${CURDIR}/.venv' \
+		'#${CURDIR}/third_party'
 
 test-compose:
 	pytest ${TESTS}

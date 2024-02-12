@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2023 CERN (home.cern)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+[submodule "third_party/license-list-data"]
+	path = third_party/license-list-data
+	url = git@github.com:spdx/license-list-data.git
