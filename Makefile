@@ -52,7 +52,7 @@ lint-python:
 
 .PHONY: lint-markdown
 lint-markdown:
-	markdownlint-cli2 ${CURDIR}/**/*.md -c
+	markdownlint-cli2 "${CURDIR}/**/*.md" "#${CURDIR}/.venv"
 
 test-compose:
 	pytest ${TESTS}

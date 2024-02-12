@@ -10,6 +10,8 @@ from typing import Annotated, Any, Literal, Optional
 from urllib import request
 from urllib.error import URLError
 
+# isort: off
+
 from pydantic import (
     BaseModel,
     Field,
@@ -17,6 +19,8 @@ from pydantic import (
     StringConstraints,
     field_validator,
 )
+
+# isort: on
 
 StrWithConstraints = Annotated[str, StringConstraints(
     strip_whitespace=True,
@@ -31,13 +35,9 @@ ListStrWithConstraintsWithField = Annotated[list[StrWithConstraints], Field(
 ListHttpUrlWithField = Annotated[list[HttpUrl], Field(min_length=1)]
 
 
-class LinkConfig(BaseModel, extra='forbid'):
-    """Represents a link configuration."""
+class UrlValidator(object):
+    """Checks if URL is reachable."""
 
-    name: StrWithConstraints
-    url: HttpUrl
-
-    @field_validator('url')
     @classmethod
     def url_must_be_reachable(cls, url: str) -> str:
         """
@@ -61,6 +61,27 @@ class LinkConfig(BaseModel, extra='forbid'):
             error_fmt = "Failed to access URL: '{0}'."
             raise ValueError(error_fmt.format(url)) from error
         return url
+
+
+class LinkConfig(BaseModel, extra='forbid'):
+    """Represents a link configuration."""
+
+    name: StrWithConstraints
+    url: HttpUrl
+
+    @field_validator('url')
+    @classmethod
+    def url_must_be_reachable(cls, url: str) -> str:
+        """
+        Check if URL is reachable.
+
+        Parameters:
+            url: URL string.
+
+        Returns:
+            URL string.
+        """
+        return UrlValidator.url_must_be_reachable(url)
 
 
 ListLinkConfigWithField = Annotated[list[LinkConfig], Field(min_length=1)]
@@ -105,7 +126,7 @@ class ProjConfig(BaseModel, extra='forbid'):
         """
         if isinstance(field_value, list):
             for url in field_value:
-                LinkConfig.url_must_be_reachable(url)
+                UrlValidator.url_must_be_reachable(url)
         else:
-            LinkConfig.url_must_be_reachable(field_value)
+            UrlValidator.url_must_be_reachable(field_value)
         return field_value
