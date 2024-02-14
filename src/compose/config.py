@@ -6,83 +6,17 @@
 
 
 import json
-from http import HTTPMethod, HTTPStatus
 from typing import Annotated, Any, Literal, Optional
-from urllib import request
-from urllib.error import URLError
 
-# isort: off
-
-from pydantic import (
-    BaseModel,
-    Field,
-    HttpUrl,
-    StringConstraints,
-    field_validator,
-)
-
-# isort: on
-
-StrWithConstraints = Annotated[str, StringConstraints(
-    strip_whitespace=True,
-    min_length=1,
-)]
-
-ListStrWithConstraintsWithField = Annotated[list[StrWithConstraints], Field(
-    min_length=1,
-)]
-
-
-ListHttpUrlWithField = Annotated[list[HttpUrl], Field(min_length=1)]
-
-
-class UrlValidator(object):
-    """Checks if a URL is reachable."""
-
-    @classmethod
-    def url_must_be_reachable(cls, url: str) -> str:
-        """
-        Check if the URL is reachable.
-
-        Parameters:
-            url: URL string.
-
-        Returns:
-            URL string.
-
-        Raises:
-            ValueError: if the URL is not reachable.
-        """
-        req = request.Request(url, method=HTTPMethod.HEAD)
-        try:
-            with request.urlopen(req, timeout=5) as res:  # noqa: S310
-                if res.status != HTTPStatus.OK:
-                    raise ValueError("Status code: '{0}'.".format(res.status))
-        except (URLError, ValueError) as error:
-            error_fmt = "Failed to access URL: '{0}'."
-            raise ValueError(error_fmt.format(url)) from error
-        return url
+from custom_types import AnnotatedStr, ListAnnotatedStr, ListUrl, Url
+from pydantic import BaseModel, Field, field_validator
 
 
 class LinkConfig(BaseModel, extra='forbid'):
     """Represents a link configuration."""
 
-    name: StrWithConstraints
-    url: HttpUrl
-
-    @field_validator('url')
-    @classmethod
-    def validate_url(cls, field_value: Any) -> Any:
-        """
-        Check if the URL is reachable.
-
-        Parameters:
-            field_value: URL string.
-
-        Returns:
-            URL string.
-        """
-        return UrlValidator.url_must_be_reachable(field_value)
+    name: AnnotatedStr
+    url: Url
 
 
 ListLinkConfigWithField = Annotated[list[LinkConfig], Field(min_length=1)]
@@ -126,49 +60,22 @@ class LicenseValidator(object):
         raise ValueError(error_fmt.format(license))
 
 
-class ProjConfig(BaseModel, extra='forbid'):
-    """Loads project configuration."""
+class ExtProjConfig(BaseModel, extra='forbid'):
+    """Represents the external configuration for a project."""
 
     version: Literal['1.0.0']
-    name: StrWithConstraints
-    description: StrWithConstraints
-    website: HttpUrl
-    licenses: ListStrWithConstraintsWithField
-    images: Optional[ListHttpUrlWithField] = None
-    documentation: Optional[HttpUrl] = None
-    issues: Optional[HttpUrl] = None
-    latest_release: Optional[HttpUrl] = None
-    forum: Optional[HttpUrl] = None
-    newsfeed: Optional[HttpUrl] = None
+    name: AnnotatedStr
+    description: AnnotatedStr
+    website: Url
+    licenses: ListAnnotatedStr
+    images: Optional[ListUrl] = None
+    documentation: Optional[Url] = None
+    issues: Optional[Url] = None
+    latest_release: Optional[Url] = None
+    forum: Optional[Url] = None
+    newsfeed: Optional[Url] = None
     links: Optional[ListLinkConfigWithField] = None
-    categories: Optional[ListStrWithConstraintsWithField] = None
-
-    @field_validator(
-        'website',
-        'images',
-        'documentation',
-        'issues',
-        'latest_release',
-        'forum',
-        'newsfeed',
-    )
-    @classmethod
-    def validate_urls(cls, field_value: Any) -> Any:
-        """
-        Check if the URLs are reachable.
-
-        Parameters:
-            field_value: URL string or list of URL strings.
-
-        Returns:
-            URL string or list of URL strings.
-        """
-        if isinstance(field_value, list):
-            for url in field_value:
-                UrlValidator.url_must_be_reachable(url)
-        else:
-            UrlValidator.url_must_be_reachable(field_value)
-        return field_value
+    categories: Optional[ListAnnotatedStr] = None
 
     @field_validator('licenses')
     @classmethod
@@ -182,6 +89,26 @@ class ProjConfig(BaseModel, extra='forbid'):
         Returns:
             list of license identifiers.
         """
-        for url in field_value:
-            LicenseValidator.is_valid_spdx_license(url)
+        for license in field_value:
+            LicenseValidator.is_valid_spdx_license(license)
         return field_value
+
+
+class IntProjConfig(BaseModel, extra='forbid'):
+    """Represents the internal configuration for a project."""
+
+    id: AnnotatedStr
+    url: Url
+    featured: Optional[bool] = False
+
+
+ListIntProjConfig = Annotated[list[IntProjConfig], Field(min_length=1)]
+
+
+class ComposeConfig(BaseModel, extra='forbid'):
+    """Loads compose configuration."""
+
+    log_level: Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    spdx_license_list: AnnotatedStr
+    source: AnnotatedStr
+    projects: ListIntProjConfig

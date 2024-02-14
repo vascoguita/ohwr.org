@@ -8,7 +8,7 @@ from http import HTTPStatus
 from urllib import request
 from pydantic import HttpUrl, ValidationError
 import pytest
-from config import LinkConfig, ProjConfig, LicenseValidator
+from config import LinkConfig, ExtProjConfig, LicenseValidator
 from unittest.mock import Mock, patch
 from urllib.error import URLError
 
@@ -156,7 +156,7 @@ def test_link_config_url_unreachable():
 
 def test_proj_config_extra_forbidden():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             peanut=1,
             version='1.0.0',
             name='Project Name',
@@ -178,7 +178,7 @@ def test_proj_config_version():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -190,7 +190,7 @@ def test_proj_config_version():
 
 def test_proj_config_version_literal_error():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.2.3',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -207,7 +207,7 @@ def test_proj_config_version_literal_error():
 
 def test_proj_config_version_missing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
@@ -227,7 +227,7 @@ def test_proj_config_name():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -239,7 +239,7 @@ def test_proj_config_name():
 
 def test_proj_config_name_string_type():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name=1234.56,
             description='Lorem ipsum dolor sit amet.',
@@ -256,7 +256,7 @@ def test_proj_config_name_string_type():
 
 def test_proj_config_name_empty():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='',
             description='Lorem ipsum dolor sit amet.',
@@ -273,7 +273,7 @@ def test_proj_config_name_empty():
 
 def test_proj_config_name_blank():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='   ',
             description='Lorem ipsum dolor sit amet.',
@@ -290,7 +290,7 @@ def test_proj_config_name_blank():
 
 def test_proj_config_name_missing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             description='Lorem ipsum dolor sit amet.',
             website='https://your.project.com',
@@ -310,7 +310,7 @@ def test_proj_config_description():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -322,7 +322,7 @@ def test_proj_config_description():
 
 def test_proj_config_description_string_type():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description=1234.56,
@@ -339,7 +339,7 @@ def test_proj_config_description_string_type():
 
 def test_proj_config_description_empty():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='',
@@ -356,7 +356,7 @@ def test_proj_config_description_empty():
 
 def test_proj_config_description_blank():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='   ',
@@ -373,7 +373,7 @@ def test_proj_config_description_blank():
 
 def test_proj_config_description_missing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             website='https://your.project.com',
@@ -393,7 +393,7 @@ def test_proj_config_website():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -405,7 +405,7 @@ def test_proj_config_website():
 
 def test_proj_config_website_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -422,7 +422,7 @@ def test_proj_config_website_url_parsing():
 
 def test_proj_config_website_missing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -441,7 +441,7 @@ def test_proj_config_website_unreachable():
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
         with pytest.raises(ValueError) as exc_info:
-            ProjConfig(
+            ExtProjConfig(
                 version='1.0.0',
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
@@ -462,7 +462,7 @@ def test_proj_config_licenses():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -474,7 +474,7 @@ def test_proj_config_licenses():
 
 def test_proj_config_licenses_list_type():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -491,7 +491,7 @@ def test_proj_config_licenses_list_type():
 
 def test_proj_config_licenses_empty():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -508,7 +508,7 @@ def test_proj_config_licenses_empty():
 
 def test_proj_config_licenses_empty_string():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -525,7 +525,7 @@ def test_proj_config_licenses_empty_string():
 
 def test_proj_config_licenses_blank_string():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -542,7 +542,7 @@ def test_proj_config_licenses_blank_string():
 
 def test_proj_config_licenses_missing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -556,13 +556,30 @@ def test_proj_config_licenses_missing():
 
     assert error_message in str(exc_info.value)
 
+def test_proj_config_licenses_not_spdx():
+    with pytest.raises(ValidationError) as exc_info:
+        ExtProjConfig(
+            version='1.0.0',
+            name='Project Name',
+            description='Lorem ipsum dolor sit amet.',
+            website='https://your.project.com',
+            licenses=['NO-SPDX-LICENSE-ID'],
+        )
+    
+    error_message = (
+        "licenses\n"
+        "  Value error, Unknown SPDX license identifier: 'NO-SPDX-LICENSE-ID'. [type=value_error, input_value=['NO-SPDX-LICENSE-ID'], input_type=list]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
 def test_proj_config_images():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -575,7 +592,7 @@ def test_proj_config_images():
 
 def test_proj_config_images_list_type():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -593,7 +610,7 @@ def test_proj_config_images_list_type():
 
 def test_proj_config_images_empty():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -611,7 +628,7 @@ def test_proj_config_images_empty():
 
 def test_proj_config_images_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -632,7 +649,7 @@ def test_proj_config_images_unreachable():
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
         with pytest.raises(ValueError) as exc_info:
-            ProjConfig(
+            ExtProjConfig(
                 version='1.0.0',
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
@@ -642,8 +659,8 @@ def test_proj_config_images_unreachable():
             )
         
         error_message = (
-            "images\n"
-            "  Value error, Failed to access URL: 'https://unreachable.url/'. [type=value_error, input_value=['https://unreachable.url'], input_type=list]\n"
+            "images.0\n"
+            "  Value error, Failed to access URL: 'https://unreachable.url/'. [type=value_error, input_value='https://unreachable.url', input_type=str]\n"
         )
 
         assert error_message in str(exc_info.value)
@@ -654,7 +671,7 @@ def test_proj_config_documentation():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -667,7 +684,7 @@ def test_proj_config_documentation():
 
 def test_proj_config_documentation_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -688,7 +705,7 @@ def test_proj_config_documentation_unreachable():
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
         with pytest.raises(ValueError) as exc_info:
-            ProjConfig(
+            ExtProjConfig(
                 version='1.0.0',
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
@@ -710,7 +727,7 @@ def test_proj_config_issues():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -723,7 +740,7 @@ def test_proj_config_issues():
 
 def test_proj_config_issues_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -744,7 +761,7 @@ def test_proj_config_issues_unreachable():
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
         with pytest.raises(ValueError) as exc_info:
-            ProjConfig(
+            ExtProjConfig(
                 version='1.0.0',
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
@@ -766,7 +783,7 @@ def test_proj_config_latest_release():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -779,7 +796,7 @@ def test_proj_config_latest_release():
 
 def test_proj_config_latest_release_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -800,7 +817,7 @@ def test_proj_config_latest_release_unreachable():
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
         with pytest.raises(ValueError) as exc_info:
-            ProjConfig(
+            ExtProjConfig(
                 version='1.0.0',
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
@@ -822,7 +839,7 @@ def test_proj_config_forum():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -835,7 +852,7 @@ def test_proj_config_forum():
 
 def test_proj_config_forum_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -856,7 +873,7 @@ def test_proj_config_forum_unreachable():
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
         with pytest.raises(ValueError) as exc_info:
-            ProjConfig(
+            ExtProjConfig(
                 version='1.0.0',
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
@@ -878,7 +895,7 @@ def test_proj_config_newsfeed():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -891,7 +908,7 @@ def test_proj_config_newsfeed():
 
 def test_proj_config_newsfeed_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -912,7 +929,7 @@ def test_proj_config_newsfeed_unreachable():
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
         with pytest.raises(ValueError) as exc_info:
-            ProjConfig(
+            ExtProjConfig(
                 version='1.0.0',
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
@@ -934,7 +951,7 @@ def test_proj_config_links():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -947,7 +964,7 @@ def test_proj_config_links():
 
 def test_proj_config_links_list_type():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -965,7 +982,7 @@ def test_proj_config_links_list_type():
 
 def test_proj_config_links_empty():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -983,7 +1000,7 @@ def test_proj_config_links_empty():
 
 def test_proj_config_links_model_type():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -1004,7 +1021,7 @@ def test_proj_config_links_unreachable():
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
         with pytest.raises(ValueError) as exc_info:
-            ProjConfig(
+            ExtProjConfig(
                 version='1.0.0',
                 name='Project Name',
                 description='Lorem ipsum dolor sit amet.',
@@ -1026,7 +1043,7 @@ def test_proj_config_categories():
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ProjConfig(
+        config = ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -1039,7 +1056,7 @@ def test_proj_config_categories():
 
 def test_proj_config_categories_list_type():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -1057,7 +1074,7 @@ def test_proj_config_categories_list_type():
 
 def test_proj_config_categories_empty():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -1075,7 +1092,7 @@ def test_proj_config_categories_empty():
 
 def test_proj_config_categories_empty_string():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
@@ -1093,7 +1110,7 @@ def test_proj_config_categories_empty_string():
 
 def test_proj_config_categories_blank_string():
     with pytest.raises(ValidationError) as exc_info:
-        ProjConfig(
+        ExtProjConfig(
             version='1.0.0',
             name='Project Name',
             description='Lorem ipsum dolor sit amet.',
