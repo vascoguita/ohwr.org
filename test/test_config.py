@@ -5,14 +5,16 @@
 """Test config module."""
 
 from http import HTTPStatus
-from urllib import request
-from pydantic import HttpUrl, ValidationError
-import pytest
-from config import LinkConfig, ExtProjConfig, LicenseValidator
 from unittest.mock import Mock, patch
+from urllib import request
 from urllib.error import URLError
 
-LicenseValidator.config('./third_party/license-list-data/json/licenses.json')
+import pytest
+from config import ExtProjConfig, LinkConfig
+from pydantic import HttpUrl, ValidationError
+from custom_types import License
+
+License.config({'licenses': [{'licenseId': 'CERN-OHL-W-2.0'}]})
 
 def test_link_config_extra_forbidden():
     with pytest.raises(ValidationError) as exc_info:
@@ -65,7 +67,7 @@ def test_link_config_name_empty():
     
     error_message = (
         "name\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -79,7 +81,7 @@ def test_link_config_name_blank():
     
     error_message = (
         "name\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='   ', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -266,7 +268,7 @@ def test_proj_config_name_empty():
     
     error_message = (
         "name\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -283,7 +285,7 @@ def test_proj_config_name_blank():
     
     error_message = (
         "name\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='   ', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -349,7 +351,7 @@ def test_proj_config_description_empty():
     
     error_message = (
         "description\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -366,7 +368,7 @@ def test_proj_config_description_blank():
     
     error_message = (
         "description\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='   ', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -518,7 +520,7 @@ def test_proj_config_licenses_empty_string():
     
     error_message = (
         "licenses.0\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -535,7 +537,7 @@ def test_proj_config_licenses_blank_string():
     
     error_message = (
         "licenses.0\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='   ', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -567,8 +569,8 @@ def test_proj_config_licenses_not_spdx():
         )
     
     error_message = (
-        "licenses\n"
-        "  Value error, Unknown SPDX license identifier: 'NO-SPDX-LICENSE-ID'. [type=value_error, input_value=['NO-SPDX-LICENSE-ID'], input_type=list]\n"
+        "licenses.0\n"
+        "  Value error, Unknown SPDX license identifier: 'NO-SPDX-LICENSE-ID'. [type=value_error, input_value='NO-SPDX-LICENSE-ID', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -1103,7 +1105,7 @@ def test_proj_config_categories_empty_string():
     
     error_message = (
         "categories.0\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
@@ -1121,7 +1123,7 @@ def test_proj_config_categories_blank_string():
     
     error_message = (
         "categories.0\n"
-        "  String should have at least 1 characters [type=string_too_short, input_value='   ', input_type=str]\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
