@@ -54,7 +54,9 @@ class IntProjConfig(BaseModelForbidExtra):
 class CliConfig(BaseModelForbidExtra):
     """Loads CLI configuration."""
 
-    log_level: Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    log_level: Optional[
+        Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    ] = 'INFO'
     spdx_license_list: AnnotatedStr
     source: AnnotatedStr
     projects: Annotated[list[IntProjConfig], Field(min_length=1)]

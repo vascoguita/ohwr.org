@@ -10,7 +10,7 @@ from urllib import request
 from urllib.error import URLError
 
 import pytest
-from config import ExtProjConfig, LinkConfig
+from config import CliConfig, ExtProjConfig, IntProjConfig, LinkConfig
 from pydantic import HttpUrl, ValidationError
 from custom_types import License
 
@@ -156,7 +156,7 @@ def test_link_config_url_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_extra_forbidden():
+def test_ext_proj_config_extra_forbidden():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             peanut=1,
@@ -174,7 +174,7 @@ def test_proj_config_extra_forbidden():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_version():
+def test_ext_proj_config_version():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -190,7 +190,7 @@ def test_proj_config_version():
 
         assert config.version == '1.0.0'
 
-def test_proj_config_version_literal_error():
+def test_ext_proj_config_version_literal_error():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.2.3',
@@ -207,7 +207,7 @@ def test_proj_config_version_literal_error():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_version_missing():
+def test_ext_proj_config_version_missing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             name='Project Name',
@@ -223,7 +223,7 @@ def test_proj_config_version_missing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_name():
+def test_ext_proj_config_name():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -239,7 +239,7 @@ def test_proj_config_name():
 
         assert config.name == 'Project Name'
 
-def test_proj_config_name_string_type():
+def test_ext_proj_config_name_string_type():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -256,7 +256,7 @@ def test_proj_config_name_string_type():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_name_empty():
+def test_ext_proj_config_name_empty():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -273,7 +273,7 @@ def test_proj_config_name_empty():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_name_blank():
+def test_ext_proj_config_name_blank():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -290,7 +290,7 @@ def test_proj_config_name_blank():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_name_missing():
+def test_ext_proj_config_name_missing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -306,7 +306,7 @@ def test_proj_config_name_missing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_description():
+def test_ext_proj_config_description():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -322,7 +322,7 @@ def test_proj_config_description():
 
         assert config.description == 'Lorem ipsum dolor sit amet.'
 
-def test_proj_config_description_string_type():
+def test_ext_proj_config_description_string_type():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -339,7 +339,7 @@ def test_proj_config_description_string_type():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_description_empty():
+def test_ext_proj_config_description_empty():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -356,7 +356,7 @@ def test_proj_config_description_empty():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_description_blank():
+def test_ext_proj_config_description_blank():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -373,7 +373,7 @@ def test_proj_config_description_blank():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_description_missing():
+def test_ext_proj_config_description_missing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -389,7 +389,7 @@ def test_proj_config_description_missing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_website():
+def test_ext_proj_config_website():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -405,7 +405,7 @@ def test_proj_config_website():
 
         assert config.website == HttpUrl('https://your.project.com')
 
-def test_proj_config_website_url_parsing():
+def test_ext_proj_config_website_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -422,7 +422,7 @@ def test_proj_config_website_url_parsing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_website_missing():
+def test_ext_proj_config_website_missing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -438,7 +438,7 @@ def test_proj_config_website_missing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_website_unreachable():
+def test_ext_proj_config_website_unreachable():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
@@ -458,7 +458,7 @@ def test_proj_config_website_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_licenses():
+def test_ext_proj_config_licenses():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -474,7 +474,7 @@ def test_proj_config_licenses():
 
         assert config.licenses == ['CERN-OHL-W-2.0']
 
-def test_proj_config_licenses_list_type():
+def test_ext_proj_config_licenses_list_type():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -491,7 +491,7 @@ def test_proj_config_licenses_list_type():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_licenses_empty():
+def test_ext_proj_config_licenses_empty():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -508,7 +508,7 @@ def test_proj_config_licenses_empty():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_licenses_empty_string():
+def test_ext_proj_config_licenses_empty_string():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -525,7 +525,7 @@ def test_proj_config_licenses_empty_string():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_licenses_blank_string():
+def test_ext_proj_config_licenses_blank_string():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -542,7 +542,7 @@ def test_proj_config_licenses_blank_string():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_licenses_missing():
+def test_ext_proj_config_licenses_missing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -558,7 +558,7 @@ def test_proj_config_licenses_missing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_licenses_not_spdx():
+def test_ext_proj_config_licenses_not_spdx():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -575,7 +575,7 @@ def test_proj_config_licenses_not_spdx():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_images():
+def test_ext_proj_config_images():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -592,7 +592,7 @@ def test_proj_config_images():
 
         assert config.images == [HttpUrl('https://your.project.com/img.png')]
 
-def test_proj_config_images_list_type():
+def test_ext_proj_config_images_list_type():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -610,7 +610,7 @@ def test_proj_config_images_list_type():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_images_empty():
+def test_ext_proj_config_images_empty():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -628,7 +628,7 @@ def test_proj_config_images_empty():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_images_url_parsing():
+def test_ext_proj_config_images_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -646,7 +646,7 @@ def test_proj_config_images_url_parsing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_images_unreachable():
+def test_ext_proj_config_images_unreachable():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
@@ -667,7 +667,7 @@ def test_proj_config_images_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_documentation():
+def test_ext_proj_config_documentation():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -684,7 +684,7 @@ def test_proj_config_documentation():
 
         assert config.documentation == HttpUrl('https://your.project.com/wiki')
 
-def test_proj_config_documentation_url_parsing():
+def test_ext_proj_config_documentation_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -702,7 +702,7 @@ def test_proj_config_documentation_url_parsing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_documentation_unreachable():
+def test_ext_proj_config_documentation_unreachable():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
@@ -723,7 +723,7 @@ def test_proj_config_documentation_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_issues():
+def test_ext_proj_config_issues():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -740,7 +740,7 @@ def test_proj_config_issues():
 
         assert config.issues == HttpUrl('https://your.project.com/issues')
 
-def test_proj_config_issues_url_parsing():
+def test_ext_proj_config_issues_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -758,7 +758,7 @@ def test_proj_config_issues_url_parsing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_issues_unreachable():
+def test_ext_proj_config_issues_unreachable():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
@@ -779,7 +779,7 @@ def test_proj_config_issues_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_latest_release():
+def test_ext_proj_config_latest_release():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -796,7 +796,7 @@ def test_proj_config_latest_release():
 
         assert config.latest_release == HttpUrl('https://your.project.com/latest_release')
 
-def test_proj_config_latest_release_url_parsing():
+def test_ext_proj_config_latest_release_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -814,7 +814,7 @@ def test_proj_config_latest_release_url_parsing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_latest_release_unreachable():
+def test_ext_proj_config_latest_release_unreachable():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
@@ -835,7 +835,7 @@ def test_proj_config_latest_release_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_forum():
+def test_ext_proj_config_forum():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -852,7 +852,7 @@ def test_proj_config_forum():
 
         assert config.forum == HttpUrl('https://your.project.com/forum')
 
-def test_proj_config_forum_url_parsing():
+def test_ext_proj_config_forum_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -870,7 +870,7 @@ def test_proj_config_forum_url_parsing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_forum_unreachable():
+def test_ext_proj_config_forum_unreachable():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
@@ -891,7 +891,7 @@ def test_proj_config_forum_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_newsfeed():
+def test_ext_proj_config_newsfeed():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -908,7 +908,7 @@ def test_proj_config_newsfeed():
 
         assert config.newsfeed == HttpUrl('https://your.project.com/newsfeed')
 
-def test_proj_config_newsfeed_url_parsing():
+def test_ext_proj_config_newsfeed_url_parsing():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -926,7 +926,7 @@ def test_proj_config_newsfeed_url_parsing():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_newsfeed_unreachable():
+def test_ext_proj_config_newsfeed_unreachable():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
@@ -947,7 +947,7 @@ def test_proj_config_newsfeed_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_links():
+def test_ext_proj_config_links():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -964,7 +964,7 @@ def test_proj_config_links():
 
         assert config.links == [LinkConfig(name='Link 1', url='https://your.project.com/link1')]
 
-def test_proj_config_links_list_type():
+def test_ext_proj_config_links_list_type():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -982,7 +982,7 @@ def test_proj_config_links_list_type():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_links_empty():
+def test_ext_proj_config_links_empty():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -1000,7 +1000,7 @@ def test_proj_config_links_empty():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_links_model_type():
+def test_ext_proj_config_links_model_type():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -1018,7 +1018,7 @@ def test_proj_config_links_model_type():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_links_unreachable():
+def test_ext_proj_config_links_unreachable():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_urlopen.side_effect = URLError("Mocked URLError")
 
@@ -1039,7 +1039,7 @@ def test_proj_config_links_unreachable():
 
         assert error_message in str(exc_info.value)
 
-def test_proj_config_categories():
+def test_ext_proj_config_categories():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
@@ -1056,7 +1056,7 @@ def test_proj_config_categories():
 
         assert config.categories == ['Category 1']
 
-def test_proj_config_categories_list_type():
+def test_ext_proj_config_categories_list_type():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -1074,7 +1074,7 @@ def test_proj_config_categories_list_type():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_categories_empty():
+def test_ext_proj_config_categories_empty():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -1092,7 +1092,7 @@ def test_proj_config_categories_empty():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_categories_empty_string():
+def test_ext_proj_config_categories_empty_string():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -1110,7 +1110,7 @@ def test_proj_config_categories_empty_string():
 
     assert error_message in str(exc_info.value)
 
-def test_proj_config_categories_blank_string():
+def test_ext_proj_config_categories_blank_string():
     with pytest.raises(ValidationError) as exc_info:
         ExtProjConfig(
             version='1.0.0',
@@ -1124,6 +1124,419 @@ def test_proj_config_categories_blank_string():
     error_message = (
         "categories.0\n"
         "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_extra_forbidden():
+    with pytest.raises(ValidationError) as exc_info:
+        IntProjConfig(
+            peanut=1,
+            id='proj_id',
+            url='https://example.com/your/project.git',
+            featured=True,
+        )
+
+    error_message = (
+        "peanut\n"
+        "  Extra inputs are not permitted [type=extra_forbidden, input_value=1, input_type=int]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_id():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = IntProjConfig(
+            id='proj_id',
+            url='https://example.com/your/project.git',
+            featured=True,
+        )
+
+        assert config.id == 'proj_id'
+
+def test_int_proj_config_id_string_type():
+    with pytest.raises(ValidationError) as exc_info:
+        IntProjConfig(
+            id=1234.56,
+            url='https://example.com/your/project.git',
+            featured=True,
+        )
+
+    error_message = (
+        "id\n"
+        "  Input should be a valid string [type=string_type, input_value=1234.56, input_type=float]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_id_empty():
+    with pytest.raises(ValidationError) as exc_info:
+        IntProjConfig(
+            id='',
+            url='https://example.com/your/project.git',
+            featured=True,
+        )
+    
+    error_message = (
+        "id\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_id_blank():
+    with pytest.raises(ValidationError) as exc_info:
+        IntProjConfig(
+            id='   ',
+            url='https://example.com/your/project.git',
+            featured=True,
+        )
+    
+    error_message = (
+        "id\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_id_missing():
+    with pytest.raises(ValidationError) as exc_info:
+        IntProjConfig(
+            url='https://example.com/your/project.git',
+            featured=True,
+        )
+
+    error_message = (
+        "id\n"
+        "  Field required [type=missing, input_value={'url': 'https://example.....git', 'featured': True}, input_type=dict]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_url():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = IntProjConfig(
+            id='proj_id',
+            url='https://example.com/your/project.git',
+            featured=True,
+        )
+
+        assert config.url == HttpUrl('https://example.com/your/project.git')
+
+def test_int_proj_config_url_url_parsing():
+    with pytest.raises(ValidationError) as exc_info:
+        IntProjConfig(
+            id='proj_id',
+            url='invalid-url',
+            featured=True,
+        )
+
+    error_message = (
+        "url\n"
+        "  Input should be a valid URL, relative URL without a base [type=url_parsing, input_value='invalid-url', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_url_missing():
+    with pytest.raises(ValidationError) as exc_info:
+        IntProjConfig(
+            id='proj_id',
+            featured=True,
+        )
+
+    error_message = (
+        "url\n"
+        "  Field required [type=missing, input_value={'id': 'proj_id', 'featured': True}, input_type=dict]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_url_unreachable():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_urlopen.side_effect = URLError("Mocked URLError")
+
+        with pytest.raises(ValueError) as exc_info:
+            LinkConfig(
+                id='proj_id',
+                url='https://unreachable.url',
+                featured=True,
+            )
+        
+        error_message = (
+            "url\n"
+            "  Value error, Failed to access URL: 'https://unreachable.url/'. [type=value_error, input_value='https://unreachable.url', input_type=str]\n"
+        )
+
+        assert error_message in str(exc_info.value)
+
+def test_int_proj_config_featured():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = IntProjConfig(
+            id='proj_id',
+            url='https://example.com/your/project.git',
+            featured=True,
+        )
+
+        assert config.featured == True
+
+def test_int_proj_config_featured_bool_type():
+    with pytest.raises(ValidationError) as exc_info:
+        IntProjConfig(
+            id='proj_id',
+            url='https://example.com/your/project.git',
+            featured=1234.56,
+        )
+
+    error_message = (
+        "featured\n"
+        "  Input should be a valid boolean [type=bool_type, input_value=1234.56, input_type=float]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_int_proj_config_featured_default():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = IntProjConfig(
+            id='proj_id',
+            url='https://example.com/your/project.git',
+        )
+
+        assert config.featured == False
+
+def test_cli_config_extra_forbidden():
+    with pytest.raises(ValidationError) as exc_info:
+        CliConfig(
+            peanut=1,
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
+        )
+
+    error_message = (
+        "peanut\n"
+        "  Extra inputs are not permitted [type=extra_forbidden, input_value=1, input_type=int]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_cli_config_log_level():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = CliConfig(
+            log_level='DEBUG',
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
+        )
+
+        assert config.log_level == 'DEBUG'
+
+def test_cli_config_log_level_literal_error():
+    with pytest.raises(ValidationError) as exc_info:
+        CliConfig(
+            log_level='ALL',
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
+        )
+
+    error_message = (
+        "log_level\n"
+        "  Input should be 'DEBUG', 'INFO', 'WARNING', 'ERROR' or 'CRITICAL' [type=literal_error, input_value='ALL', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_cli_config_log_level_default():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
+        )
+
+        assert config.log_level == 'INFO'
+
+def test_cli_config_spdx_license_list():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
+        )
+
+        assert config.spdx_license_list == './third_party/license-list-data/json/licenses.json'
+
+def test_cli_config_spdx_license_list_string_type():
+    with pytest.raises(ValidationError) as exc_info:
+        CliConfig(
+            spdx_license_list=1234.56,
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
+        )
+
+    error_message = (
+        "spdx_license_list\n"
+        "  Input should be a valid string [type=string_type, input_value=1234.56, input_type=float]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_ext_proj_config_name_empty():
+    with pytest.raises(ValidationError) as exc_info:
+        CliConfig(
+            spdx_license_list='',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
+        )
+    
+    error_message = (
+        "spdx_license_list\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_ext_proj_config_name_blank():
+    with pytest.raises(ValidationError) as exc_info:
+        ExtProjConfig(
+            version='1.0.0',
+            name='   ',
+            description='Lorem ipsum dolor sit amet.',
+            website='https://your.project.com',
+            licenses=['CERN-OHL-W-2.0'],
+        )
+    
+    error_message = (
+        "name\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_ext_proj_config_name_missing():
+    with pytest.raises(ValidationError) as exc_info:
+        ExtProjConfig(
+            version='1.0.0',
+            description='Lorem ipsum dolor sit amet.',
+            website='https://your.project.com',
+            licenses=['CERN-OHL-W-2.0'],
+        )
+
+    error_message = (
+        "name\n"
+        "  Field required [type=missing, input_value={'version': '1.0.0', 'des...es': ['CERN-OHL-W-2.0']}, input_type=dict]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_ext_proj_config_description():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = ExtProjConfig(
+            version='1.0.0',
+            name='Project Name',
+            description='Lorem ipsum dolor sit amet.',
+            website='https://your.project.com',
+            licenses=['CERN-OHL-W-2.0'],
+        )
+
+        assert config.description == 'Lorem ipsum dolor sit amet.'
+
+def test_ext_proj_config_description_string_type():
+    with pytest.raises(ValidationError) as exc_info:
+        ExtProjConfig(
+            version='1.0.0',
+            name='Project Name',
+            description=1234.56,
+            website='https://your.project.com',
+            licenses=['CERN-OHL-W-2.0'],
+        )
+
+    error_message = (
+        "description\n"
+        "  Input should be a valid string [type=string_type, input_value=1234.56, input_type=float]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_ext_proj_config_description_empty():
+    with pytest.raises(ValidationError) as exc_info:
+        ExtProjConfig(
+            version='1.0.0',
+            name='Project Name',
+            description='',
+            website='https://your.project.com',
+            licenses=['CERN-OHL-W-2.0'],
+        )
+    
+    error_message = (
+        "description\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_ext_proj_config_description_blank():
+    with pytest.raises(ValidationError) as exc_info:
+        ExtProjConfig(
+            version='1.0.0',
+            name='Project Name',
+            description='   ',
+            website='https://your.project.com',
+            licenses=['CERN-OHL-W-2.0'],
+        )
+    
+    error_message = (
+        "description\n"
+        "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_ext_proj_config_description_missing():
+    with pytest.raises(ValidationError) as exc_info:
+        ExtProjConfig(
+            version='1.0.0',
+            name='Project Name',
+            website='https://your.project.com',
+            licenses=['CERN-OHL-W-2.0'],
+        )
+
+    error_message = (
+        "description\n"
+        "  Field required [type=missing, input_value={'version': '1.0.0', 'nam...es': ['CERN-OHL-W-2.0']}, input_type=dict]\n"
     )
 
     assert error_message in str(exc_info.value)
