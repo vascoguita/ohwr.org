@@ -1410,7 +1410,7 @@ def test_cli_config_spdx_license_list_string_type():
 
     assert error_message in str(exc_info.value)
 
-def test_ext_proj_config_name_empty():
+def test_cli_config_spdx_license_list_empty():
     with pytest.raises(ValidationError) as exc_info:
         CliConfig(
             spdx_license_list='',
@@ -1425,118 +1425,181 @@ def test_ext_proj_config_name_empty():
 
     assert error_message in str(exc_info.value)
 
-def test_ext_proj_config_name_blank():
+def test_cli_config_spdx_license_list_blank():
     with pytest.raises(ValidationError) as exc_info:
-        ExtProjConfig(
-            version='1.0.0',
-            name='   ',
-            description='Lorem ipsum dolor sit amet.',
-            website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0'],
+        CliConfig(
+            spdx_license_list='   ',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
         )
     
     error_message = (
-        "name\n"
+        "spdx_license_list\n"
         "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
 
-def test_ext_proj_config_name_missing():
+def test_cli_config_spdx_license_list_missing():
     with pytest.raises(ValidationError) as exc_info:
-        ExtProjConfig(
-            version='1.0.0',
-            description='Lorem ipsum dolor sit amet.',
-            website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0'],
+        CliConfig(
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
         )
 
     error_message = (
-        "name\n"
-        "  Field required [type=missing, input_value={'version': '1.0.0', 'des...es': ['CERN-OHL-W-2.0']}, input_type=dict]\n"
+        "spdx_license_list\n"
+        "  Field required [type=missing, input_value={'source': './src/hugo', ...com/your/project.git'}]}, input_type=dict]\n"
     )
 
     assert error_message in str(exc_info.value)
 
-def test_ext_proj_config_description():
+def test_cli_config_source():
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
         mock_response.status = HTTPStatus.OK
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        config = ExtProjConfig(
-            version='1.0.0',
-            name='Project Name',
-            description='Lorem ipsum dolor sit amet.',
-            website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0'],
+        config = CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
         )
 
-        assert config.description == 'Lorem ipsum dolor sit amet.'
+        assert config.source == './src/hugo'
 
-def test_ext_proj_config_description_string_type():
+def test_cli_config_source_string_type():
     with pytest.raises(ValidationError) as exc_info:
-        ExtProjConfig(
-            version='1.0.0',
-            name='Project Name',
-            description=1234.56,
-            website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0'],
+        CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source=1234.56,
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
         )
 
     error_message = (
-        "description\n"
+        "source\n"
         "  Input should be a valid string [type=string_type, input_value=1234.56, input_type=float]\n"
     )
 
     assert error_message in str(exc_info.value)
 
-def test_ext_proj_config_description_empty():
+def test_cli_config_source_empty():
     with pytest.raises(ValidationError) as exc_info:
-        ExtProjConfig(
-            version='1.0.0',
-            name='Project Name',
-            description='',
-            website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0'],
+        CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
         )
     
     error_message = (
-        "description\n"
+        "source\n"
         "  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
 
-def test_ext_proj_config_description_blank():
+def test_cli_config_source_blank():
     with pytest.raises(ValidationError) as exc_info:
-        ExtProjConfig(
-            version='1.0.0',
-            name='Project Name',
-            description='   ',
-            website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0'],
+        CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='   ',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
         )
     
     error_message = (
-        "description\n"
+        "source\n"
         "  String should have at least 1 character [type=string_too_short, input_value='   ', input_type=str]\n"
     )
 
     assert error_message in str(exc_info.value)
 
-def test_ext_proj_config_description_missing():
+def test_cli_config_source_missing():
     with pytest.raises(ValidationError) as exc_info:
-        ExtProjConfig(
-            version='1.0.0',
-            name='Project Name',
-            website='https://your.project.com',
-            licenses=['CERN-OHL-W-2.0'],
+        CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
         )
 
     error_message = (
-        "description\n"
-        "  Field required [type=missing, input_value={'version': '1.0.0', 'nam...es': ['CERN-OHL-W-2.0']}, input_type=dict]\n"
+        "source\n"
+        "  Field required [type=missing, input_value={'spdx_license_list': './...com/your/project.git'}]}, input_type=dict]\n"
     )
 
     assert error_message in str(exc_info.value)
+
+def test_cli_config_projects():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_response = Mock()
+        mock_response.status = HTTPStatus.OK
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        config = CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=[{'id' : 'proj_id', 'url' : 'https://example.com/your/project.git'}],
+        )
+
+        assert config.projects == [IntProjConfig(id='proj_id', url='https://example.com/your/project.git')]
+
+def test_cli_config_projects_list_type():
+    with pytest.raises(ValidationError) as exc_info:
+        CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects='abcd',
+        )
+
+    error_message = (
+        "projects\n"
+        "  Input should be a valid list [type=list_type, input_value='abcd', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_cli_config_projects_empty():
+    with pytest.raises(ValidationError) as exc_info:
+        CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=[]
+        )
+    
+    error_message = (
+        "projects\n"
+        "  List should have at least 1 item after validation, not 0 [type=too_short, input_value=[], input_type=list]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_cli_config_projects_model_type():
+    with pytest.raises(ValidationError) as exc_info:
+        CliConfig(
+            spdx_license_list='./third_party/license-list-data/json/licenses.json',
+            source='./src/hugo',
+            projects=['invalid-proj'],
+        )
+
+    error_message = (
+        "projects.0\n"
+        "  Input should be a valid dictionary or instance of IntProjConfig [type=model_type, input_value='invalid-proj', input_type=str]\n"
+    )
+
+    assert error_message in str(exc_info.value)
+
+def test_cli_config_projects_unreachable():
+    with patch.object(request, 'urlopen') as mock_urlopen:
+        mock_urlopen.side_effect = URLError("Mocked URLError")
+
+        with pytest.raises(ValueError) as exc_info:
+            CliConfig(
+                spdx_license_list='./third_party/license-list-data/json/licenses.json',
+                source='./src/hugo',
+                projects=[{'id' : 'proj_id', 'url' : 'https://example.com/unreachable/project.git'}],
+            )
+        
+        error_message = (
+            "projects.0.url\n"
+            "  Value error, Failed to access URL: 'https://example.com/unreachable/project.git'. [type=value_error, input_value='https://example.com/unreachable/project.git', input_type=str]\n"
+        )
+
+        assert error_message in str(exc_info.value)
