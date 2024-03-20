@@ -4,4 +4,4 @@
 
 [submodule "third_party/license-list-data"]
 	path = third_party/license-list-data
-	url = git@github.com:spdx/license-list-data.git
+	url = https://github.com/spdx/license-list-data.git
