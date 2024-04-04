@@ -8,7 +8,7 @@ import os
 import subprocess  # noqa: S404
 from logging import debug, info
 from tempfile import TemporaryDirectory
-from typing import Optional, TextIO, Union
+from typing import Literal, Optional, TextIO, Union
 from urllib import error, request
 from urllib.parse import urlparse
 
@@ -72,6 +72,7 @@ class LicenseConfig(LinkConfig):
 class ProjConfig(BaseModelForbidExtra):
     """Loads, parses and validates project sources configuration."""
 
+    version: Literal['1.0.0']
     id: str
     url: str
     contact: ContactConfig
@@ -239,7 +240,7 @@ class ProjConfig(BaseModelForbidExtra):
             raise ConfigError(msg.format(yaml_error))
         info('Validating {0}/.ohwr.yaml...'.format(kwargs['id']))
         try:
-            return cls(**config['project'], **kwargs)
+            return cls(**config, **kwargs)
         except (ValidationError, KeyError) as validation_error:
             msg = 'YAML configuration is not valid:\n↳ {0}'
             raise ConfigError(msg.format(validation_error))
