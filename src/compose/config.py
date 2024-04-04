@@ -2,245 +2,67 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Load, parse and validate configuration."""
-
-import os
-import subprocess  # noqa: S404
-from logging import debug, info
-from tempfile import TemporaryDirectory
-from typing import Literal, Optional, TextIO, Union
-from urllib import error, request
-from urllib.parse import urlparse
-
-import yaml
-from base import URL, BaseModelForbidExtra
-from description import Description, DescriptionError
-from newsfeed import News, Newsfeed, NewsfeedError
-from pydantic import EmailStr, ValidationError
+"""Load configuration."""
 
 
-class ConfigError(Exception):
-    """Failed to load, parse or validate configuration."""
+from typing import Annotated, Literal, Optional
+
+from custom_types import (
+    AnnotatedStr,
+    ListAnnotatedStr,
+    ListUrl,
+    SpdxLicense,
+    Url,
+)
+from pydantic import BaseModel, Field
 
 
-class CatConfig(BaseModelForbidExtra):
-    """Parses and validates category configuration."""
-
-    name: str
-    description: str
-
-
-class ContactConfig(BaseModelForbidExtra):
-    """Parses and validates contact configuration."""
-
-    name: str
-    email: EmailStr
+class BaseModelForbidExtra(BaseModel, extra='forbid'):
+    """Custom base class for Pydantic models with extra='forbid'."""
 
 
 class LinkConfig(BaseModelForbidExtra):
-    """Parses and validates link configuration."""
+    """Represents a link configuration."""
 
-    name: str
-    url: URL
-
-
-class LicenseConfig(LinkConfig):
-    """Parses, validates license configuration."""
-
-    @classmethod
-    def from_id(cls, license_id: str, spdx_license_list: dict):
-        """
-        Construct a LicenseConfig object from an SPDX license identifier.
-
-        Parameters:
-            license_id: SPDX license identifier.
-            spdx_license_list: SPDX license data list.
-
-        Returns:
-            LicenseConfig object.
-
-        Raises:
-            ConfigError: if license_id is not a valid SPDX license identifier.
-        """
-        for license in spdx_license_list['licenses']:
-            if license['licenseId'] == license_id:
-                return cls(name=license['name'], url=license['reference'])
-        msg = 'License ID is not a valid SPDX license ID: {0}'
-        raise ConfigError(msg.format(license_id))
+    name: AnnotatedStr
+    url: Url
 
 
-class ProjConfig(BaseModelForbidExtra):
-    """Loads, parses and validates project sources configuration."""
+ListLinkConfig = Annotated[list[LinkConfig], Field(min_length=1)]
+
+
+class ExtProjConfig(BaseModelForbidExtra):
+    """Represents the external configuration for a project."""
 
     version: Literal['1.0.0']
-    id: str
-    url: str
-    contact: ContactConfig
+    name: AnnotatedStr
+    description: AnnotatedStr
+    website: Url
+    licenses: Annotated[list[SpdxLicense], Field(min_length=1)]
+    images: Optional[ListUrl] = None
+    documentation: Optional[Url] = None
+    issues: Optional[Url] = None
+    latest_release: Optional[Url] = None
+    forum: Optional[Url] = None
+    newsfeed: Optional[Url] = None
+    links: Optional[ListLinkConfig] = None
+    categories: Optional[ListAnnotatedStr] = None
+
+
+class IntProjConfig(BaseModelForbidExtra):
+    """Represents the internal configuration for a project."""
+
+    id: AnnotatedStr
+    url: Url
     featured: Optional[bool] = False
-    name: str
-    description: str
-    website: URL
-    licenses: list[LicenseConfig]
-    images: Optional[list[URL]] = None
-    documentation: Optional[URL] = None
-    issues: Optional[URL] = None
-    latest_release: Optional[URL] = None
-    forum: Optional[URL] = None
-    links: Optional[list[LinkConfig]] = None
-    categories: Optional[list[str]] = None
-    news: Optional[list[News]] = None
 
-    def __init__(  # noqa: WPS211,WPS210
-        self,
-        description: URL,
-        licenses: list[str],
-        spdx_license_list: dict,
-        newsfeed: URL = None,
-        **kwargs,
-    ):
-        """
-        Construct a ProjConfig object.
 
-        Parameters:
-            description: Markdown description URL.
-            licenses: SPDX license identifiers.
-            spdx_license_list: SPDX license data list.
-            newsfeed: Markdown newsfeed URL.
-            kwargs: project configuration attributes.
+class CliConfig(BaseModelForbidExtra):
+    """Loads CLI configuration."""
 
-        Raises:
-            ConfigError: if loading the configuration fails.
-        """
-        try:
-            des = Description.from_url(description)
-        except DescriptionError as desc_error:
-            msg = 'Failed to load description from {0}:\n↳ {1}'
-            raise ConfigError(msg.format(description, desc_error))
-
-        license_configs = []
-        for license_id in licenses:
-            license_configs.append(
-                LicenseConfig.from_id(license_id, spdx_license_list),
-            )
-
-        news = None
-        if newsfeed is not None:
-            try:
-                nf = Newsfeed.from_url(newsfeed)
-            except NewsfeedError as newsfeed_error:
-                msg = 'Failed to load newsfeed from {0}:\n↳ {1}'
-                raise ConfigError(msg.format(newsfeed, newsfeed_error))
-            news = nf.news
-
-        super().__init__(
-            licenses=license_configs,
-            description=des.md,
-            news=news,
-            **kwargs,
-        )
-
-    @classmethod
-    def from_url(cls, url: str, **kwargs):
-        """
-        Load project sources configuration from a URL.
-
-        Parameters:
-            url: git repository URL.
-            kwargs: id and type (optional).
-
-        Returns:
-            ProjConfig object.
-        """
-        if urlparse(url).hostname == 'github.com':
-            return cls.from_github(url=url, **kwargs)
-        return cls.from_repo(url=url, **kwargs)
-
-    @classmethod
-    def from_repo(cls, url: str, **kwargs):
-        """
-        Load project sources configuration from a git repository.
-
-        Parameters:
-            url: git repository URL.
-            kwargs: id and type (optional).
-
-        Returns:
-            ProjConfig object.
-
-        Raises:
-            ConfigError: if loading the configuration fails.
-        """
-        info('Loading .ohwr.yaml from {0} with git clone...'.format(url))
-        tmpdir = TemporaryDirectory().name
-        try:
-            subprocess.check_output(
-                'git clone --depth 1 {0} {1}'.format(url, tmpdir),
-                stderr=subprocess.STDOUT,
-                shell=True,  # noqa: S602
-            )
-        except subprocess.CalledProcessError as subprocess_error:
-            msg = 'Failed to clone {0}:\n↳ {1}'
-            raise ConfigError(msg.format(url, subprocess_error))
-        try:
-            with open(os.path.join(tmpdir, '.ohwr.yaml')) as config_file:
-                return cls.from_yaml(config_file, url=url, **kwargs)
-        except FileNotFoundError:
-            msg = 'No .ohwr.yaml file found in {0}.'
-            raise ConfigError(msg.format(url))
-
-    @classmethod
-    def from_github(cls, url: str, **kwargs):
-        """
-        Load project sources configuration from a GitHub repository.
-
-        Parameters:
-            url: git repository URL.
-            kwargs: id and type (optional).
-
-        Returns:
-            ProjConfig object.
-
-        Raises:
-            ConfigError: if loading the configuration fails.
-        """
-        info('Loading .ohwr.yaml from {0} with GitHub API...'.format(url))
-        repo = urlparse(url).path.removeprefix('/').removesuffix('.git')
-        fmt = 'https://api.github.com/repos/{0}/contents/.ohwr.yaml'
-        req = request.Request(
-            fmt.format(repo),
-            headers={'Accept': 'application/vnd.github.v3.raw'},
-        )
-        try:
-            with request.urlopen(req) as response:  # noqa: S310
-                return cls.from_yaml(response, url=url, **kwargs)
-        except error.URLError as url_error:
-            msg = 'Failed to request {0}:\n↳ {1}'
-            raise ConfigError(msg.format(req.full_url, url_error))
-
-    @classmethod
-    def from_yaml(cls, config_yaml: Union[str, TextIO], **kwargs):
-        """
-        Parse and validate project sources YAML configuration.
-
-        Parameters:
-            config_yaml: YAML file or string.
-            kwargs: id, url and type (optional).
-
-        Returns:
-            ProjConfig object.
-
-        Raises:
-            ConfigError: if parsing or validating the configuration fails.
-        """
-        debug('Parsing {0}/.ohwr.yaml...'.format(kwargs['id']))
-        try:
-            config = yaml.safe_load(config_yaml)
-        except yaml.YAMLError as yaml_error:
-            msg = 'Failed to load YAML configuration:\n↳ {0}'
-            raise ConfigError(msg.format(yaml_error))
-        info('Validating {0}/.ohwr.yaml...'.format(kwargs['id']))
-        try:
-            return cls(**config, **kwargs)
-        except (ValidationError, KeyError) as validation_error:
-            msg = 'YAML configuration is not valid:\n↳ {0}'
-            raise ConfigError(msg.format(validation_error))
+    log_level: Optional[
+        Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    ] = 'INFO'
+    spdx_license_list: Url
+    source: AnnotatedStr
+    projects: Annotated[list[IntProjConfig], Field(min_length=1)]

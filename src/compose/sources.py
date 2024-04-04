@@ -15,7 +15,7 @@ from newsfeed import News
 
 
 @dataclass
-class Sources(object):
+class Sources:
     """Base class to write Hugo data and content file."""
 
     data_path: str

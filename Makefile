@@ -47,7 +47,7 @@ lint-makefile:
 
 .PHONY: lint-python
 lint-python:
-	flake8 ${COMPOSE}
+	flake8
 
 .PHONY: lint-markdown
 lint-markdown:
