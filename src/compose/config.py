@@ -41,11 +41,8 @@ ExternalProjectConfigList = Annotated[list[ExternalProjectConfig], Field(
 class InternalProjectConfig(BaseModelForbidExtra):
     """Represents the internal configuration for a project."""
 
-    id: AnnotatedStr
     url: Url
     contact: Contact
-    featured: Optional[bool] = False
-    categories: Optional[CategoryNameList] = None
 
 
 class CliConfig(BaseModelForbidExtra):
@@ -56,5 +53,5 @@ class CliConfig(BaseModelForbidExtra):
     ] = 'INFO'
     spdx_license_list: Url
     source: AnnotatedStr
-    projects: ExternalProjectConfigList
+    projects: Optional[UrlList] = None
     categories: Optional[CategoryList] = None
