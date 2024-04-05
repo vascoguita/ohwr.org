@@ -7,54 +7,45 @@
 
 from typing import Annotated, Literal, Optional
 
-from custom_types import (
-    AnnotatedStr,
-    ListAnnotatedStr,
-    ListUrl,
-    SpdxLicense,
-    Url,
-)
-from pydantic import BaseModel, Field
+from category import CategoryList, CategoryNameList
+from contact import Contact
+from license import LicenseList
+from link import LinkList
+from pydantic import Field
+from pydantic_utils import AnnotatedStr, BaseModelForbidExtra
+from url import Url, UrlList
 
 
-class BaseModelForbidExtra(BaseModel, extra='forbid'):
-    """Custom base class for Pydantic models with extra='forbid'."""
-
-
-class LinkConfig(BaseModelForbidExtra):
-    """Represents a link configuration."""
-
-    name: AnnotatedStr
-    url: Url
-
-
-ListLinkConfig = Annotated[list[LinkConfig], Field(min_length=1)]
-
-
-class ExtProjConfig(BaseModelForbidExtra):
+class ExternalProjectConfig(BaseModelForbidExtra):
     """Represents the external configuration for a project."""
 
     version: Literal['1.0.0']
     name: AnnotatedStr
-    description: AnnotatedStr
+    description: Url
     website: Url
-    licenses: Annotated[list[SpdxLicense], Field(min_length=1)]
-    images: Optional[ListUrl] = None
+    licenses: LicenseList
+    images: Optional[UrlList] = None
     documentation: Optional[Url] = None
     issues: Optional[Url] = None
     latest_release: Optional[Url] = None
     forum: Optional[Url] = None
     newsfeed: Optional[Url] = None
-    links: Optional[ListLinkConfig] = None
-    categories: Optional[ListAnnotatedStr] = None
+    links: Optional[LinkList] = None
 
 
-class IntProjConfig(BaseModelForbidExtra):
+ExternalProjectConfigList = Annotated[list[ExternalProjectConfig], Field(
+    min_length=1,
+)]
+
+
+class InternalProjectConfig(BaseModelForbidExtra):
     """Represents the internal configuration for a project."""
 
     id: AnnotatedStr
     url: Url
+    contact: Contact
     featured: Optional[bool] = False
+    categories: Optional[CategoryNameList] = None
 
 
 class CliConfig(BaseModelForbidExtra):
@@ -65,4 +56,5 @@ class CliConfig(BaseModelForbidExtra):
     ] = 'INFO'
     spdx_license_list: Url
     source: AnnotatedStr
-    projects: Annotated[list[IntProjConfig], Field(min_length=1)]
+    projects: ExternalProjectConfigList
+    categories: Optional[CategoryList] = None
