@@ -9,6 +9,12 @@ licenses: './third_party/spdx/license-list-data/json/licenses.json'
 
 log_level: 'INFO'
 
+categories:
+  - name: 'FMC Carriers'
+    description: 'Boards that connect FMC Modules'
+  - name: 'FMC Modules'
+    description: 'FPGA Mezzanine Cards'
+
 projects:
   - repository: 'https://github.com/vascoguita/svec.git'
     contact:
@@ -42,9 +48,3 @@ projects:
       email: 'vasco.guita@cern.ch'
     categories:
       - 'FMC Modules'
-
-categories:
-  - name: 'FMC Carriers'
-    description: 'Boards that connect FMC Modules'
-  - name: 'FMC Modules'
-    description: 'FPGA Mezzanine Cards'

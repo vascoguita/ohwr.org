@@ -7,51 +7,72 @@
 
 from typing import Annotated, Literal, Optional
 
-from category import CategoryList, CategoryNameList
-from contact import Contact
-from license import LicenseList
-from link import LinkList
-from pydantic import Field
-from pydantic_utils import AnnotatedStr, BaseModelForbidExtra
-from url import Url, UrlList
+from pydantic import EmailStr, Field, model_validator
+from pydantic_utils import AnnotatedStr, BaseModelForbidExtra, Url
 
 
-class ExternalProjectConfig(BaseModelForbidExtra):
-    """Represents the external configuration for a project."""
+class Contact(BaseModelForbidExtra):
+    """Contact configuration schema."""
 
-    version: Literal['1.0.0']
     name: AnnotatedStr
-    description: Url
-    website: Url
-    licenses: LicenseList
-    images: Optional[UrlList] = None
-    documentation: Optional[Url] = None
-    issues: Optional[Url] = None
-    latest_release: Optional[Url] = None
-    forum: Optional[Url] = None
-    newsfeed: Optional[Url] = None
-    links: Optional[LinkList] = None
+    email: EmailStr
 
 
-ExternalProjectConfigList = Annotated[list[ExternalProjectConfig], Field(
-    min_length=1,
-)]
+class Category(BaseModelForbidExtra):
+    """Category configuration schema."""
+
+    name: AnnotatedStr
+    description: AnnotatedStr
 
 
-class InternalProjectConfig(BaseModelForbidExtra):
-    """Represents the internal configuration for a project."""
+CategoryList = Annotated[list[Category], Field(min_length=1)]
 
-    url: Url
+
+class Project(BaseModelForbidExtra):
+    """Project configuration schema."""
+
+    repository: Url
     contact: Contact
+    featured: Optional[bool] = False
+    categories: Optional[AnnotatedStr] = None
 
 
-class CliConfig(BaseModelForbidExtra):
-    """Loads CLI configuration."""
+ProjectList = Annotated[list[Project], Field(min_length=1)]
 
+
+class Config(BaseModelForbidExtra):
+    """Main configuration schema."""
+
+    sources: AnnotatedStr
+    licenses: AnnotatedStr
     log_level: Optional[
         Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
     ] = 'INFO'
-    spdx_license_list: Url
-    source: AnnotatedStr
-    projects: Optional[UrlList] = None
     categories: Optional[CategoryList] = None
+    projects: ProjectList
+
+    @model_validator(mode='after')
+    def check_categories_match(self) -> 'Config':
+        """
+        Check if categories in projects match the available categories.
+
+        Raises:
+            ValueError: If an unknown category is found in a project.
+
+        Returns:
+            Config: The configuration object with validated category names.
+        """
+        categories = []
+        if self.categories:
+            for category in self.categories:
+                categories.append(category.name)
+
+        for project in self.projects:
+            if project.categories:
+                unknown = set(project.categories) - set(categories)
+                if unknown:
+                    raise ValueError(
+                        "Project '{0}' with unknown categories: '{1}'.".format(
+                            project.repository, unknown,
+                        ))
+        return self
