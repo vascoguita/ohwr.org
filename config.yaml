@@ -3,44 +3,48 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-# 'DEBUG', 'INFO', 'WARNING', 'ERROR' or 'CRITICAL'
+sources: './src/hugo'
+
+licenses: './third_party/spdx/license-list-data/json/licenses.json'
+
 log_level: 'INFO'
 
-license_list: 'https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json'  # yamllint disable-line rule:line-length
-
-source: './src/hugo'
-
 projects:
-  - 'https://github.com/vascoguita/svec.git'
-  - 'https://github.com/vascoguita/spec.git'
-  - 'https://github.com/vascoguita/fmc-tdc.git'
-  - 'https://github.com/vascoguita/fmc-delay-1ns-8cha.git'
-  - 'https://github.com/vascoguita/fmc-adc-100m14b4cha.git'
+  - repository: 'https://github.com/vascoguita/svec.git'
+    contact:
+      name: 'Vasco Guita'
+      email: 'vasco.guita@cern.ch'
+    featured: true
+    categories:
+      - 'FMC Carriers'
+  - repository: 'https://github.com/vascoguita/spec.git'
+    contact:
+      name: 'Vasco Guita'
+      email: 'vasco.guita@cern.ch'
+    featured: true
+    categories:
+      - 'FMC Carriers'
+  - repository: 'https://github.com/vascoguita/fmc-tdc.git'
+    contact:
+      name: 'Vasco Guita'
+      email: 'vasco.guita@cern.ch'
+    categories:
+      - 'FMC Modules'
+  - repository: 'https://github.com/vascoguita/fmc-delay-1ns-8cha.git'
+    contact:
+      name: 'Vasco Guita'
+      email: 'vasco.guita@cern.ch'
+    categories:
+      - 'FMC Modules'
+  - repository: 'https://github.com/vascoguita/fmc-adc-100m14b4cha.git'
+    contact:
+      name: 'Vasco Guita'
+      email: 'vasco.guita@cern.ch'
+    categories:
+      - 'FMC Modules'
 
 categories:
   - name: 'FMC Carriers'
     description: 'Boards that connect FMC Modules'
-    projects:
-      - 'svec'
-      - 'spec'
   - name: 'FMC Modules'
     description: 'FPGA Mezzanine Cards'
-    projects:
-      - 'fmc-tdc'
-      - 'fmc-delay-1ns-8cha'
-      - 'fmc-adc-100m14b4cha'
-
-featured:
-  - 'svec'
-  - 'spec'
-
-contacts:
-  - name: 'Vasco Guita'
-    email: 'vasco.guita@cern.ch'
-    projects:
-      - 'svec'
-      - 'spec'
-      - 'fmc-tdc'
-      - 'fmc-delay-1ns-8cha'
-      - 'fmc-adc-100m14b4cha'
-
