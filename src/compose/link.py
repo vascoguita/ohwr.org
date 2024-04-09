@@ -8,8 +8,7 @@
 from typing import Annotated
 
 from pydantic import Field
-from pydantic_utils import AnnotatedStr, BaseModelForbidExtra
-from url import Url
+from pydantic_utils import AnnotatedStr, BaseModelForbidExtra, Url
 
 
 class Link(BaseModelForbidExtra):

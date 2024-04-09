@@ -5,10 +5,23 @@
 """Load configuration."""
 
 
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal, Optional, TextIO, Union
 
-from pydantic import EmailStr, Field, model_validator
-from pydantic_utils import AnnotatedStr, BaseModelForbidExtra, Url
+import yaml
+from pydantic import (
+    DirectoryPath,
+    EmailStr,
+    Field,
+    FilePath,
+    ValidationError,
+    model_validator,
+)
+from pydantic_utils import (
+    AnnotatedStr,
+    AnnotatedStrList,
+    BaseModelForbidExtra,
+    Url,
+)
 
 
 class Contact(BaseModelForbidExtra):
@@ -34,7 +47,7 @@ class Project(BaseModelForbidExtra):
     repository: Url
     contact: Contact
     featured: Optional[bool] = False
-    categories: Optional[AnnotatedStr] = None
+    categories: Optional[AnnotatedStrList] = None
 
 
 ProjectList = Annotated[list[Project], Field(min_length=1)]
@@ -43,8 +56,8 @@ ProjectList = Annotated[list[Project], Field(min_length=1)]
 class Config(BaseModelForbidExtra):
     """Main configuration schema."""
 
-    sources: AnnotatedStr
-    licenses: AnnotatedStr
+    sources: DirectoryPath
+    licenses: FilePath
     log_level: Optional[
         Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
     ] = 'INFO'
@@ -56,11 +69,11 @@ class Config(BaseModelForbidExtra):
         """
         Check if categories in projects match the available categories.
 
-        Raises:
-            ValueError: If an unknown category is found in a project.
-
         Returns:
             Config: The configuration object with validated category names.
+
+        Raises:
+            ValueError: If an unknown category is found in a project.
         """
         categories = []
         if self.categories:
@@ -76,3 +89,30 @@ class Config(BaseModelForbidExtra):
                             project.repository, unknown,
                         ))
         return self
+
+    @classmethod
+    def from_yaml(cls, config_yaml: Union[str, TextIO]):
+        """
+        Load the configuration from a YAML file or string.
+
+        Parameters:
+            config_yaml: YAML file or string.
+
+        Returns:
+            Config: The configuration object with validated category names.
+
+        Raises:
+            ValueError: If loading the configuration fails.
+        """
+        try:
+            config = yaml.safe_load(config_yaml)
+        except yaml.YAMLError as yaml_error:
+            raise ValueError(
+                'Failed to load YAML configuration:\n↳ {0}'.format(yaml_error),
+                )
+        try:
+            return cls(**config)
+        except (ValidationError, KeyError) as config_error:
+            raise ValueError(
+                'YAML configuration is not valid:\n↳ {0}'.format(config_error),
+            )
