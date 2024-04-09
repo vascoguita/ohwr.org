@@ -16,9 +16,6 @@ args = parser.parse_args()
 
 config = Config.from_yaml(args.config)
 
-logging.basicConfig(
-    level=getattr(logging, config.log_level),
-    format='%(asctime)s - %(levelname)s - %(message)s',  # noqa: WPS323
-)
+logging.basicConfig(level=getattr(logging, config.log_level))
 
 LicenseValidator.config(config.licenses)

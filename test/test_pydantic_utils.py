@@ -72,13 +72,12 @@ def test_base_model_forbid_extra_missing():
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'test_attribute\n  Field required ' +
-        '[type=missing, input_value={}, input_type=dict]\n'
-    )
     with pytest.raises(ValidationError) as exc_info:
         BaseModelForbidExtraTest()
-    assert error_message in str(exc_info.value)
+    assert (
+        'test_attribute\n  Field required ' +
+        '[type=missing, input_value={}, input_type=dict]\n'
+    ) in str(exc_info.value)
 
 
 def test_base_model_forbid_extra_forbidden():
@@ -88,13 +87,12 @@ def test_base_model_forbid_extra_forbidden():
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'extra_attribute\n  Extra inputs are not permitted ' +
-        '[type=extra_forbidden, input_value=2, input_type=int]\n'
-    )
     with pytest.raises(ValidationError) as exc_info:
         BaseModelForbidExtraTest(test_attribute=1, extra_attribute=2)
-    assert error_message in str(exc_info.value)
+    assert (
+        'extra_attribute\n  Extra inputs are not permitted ' +
+        '[type=extra_forbidden, input_value=2, input_type=int]\n'
+    ) in str(exc_info.value)
 
 
 class AnnotatedStrTest(BaseModel):
@@ -121,13 +119,12 @@ def test_annotated_str_type():
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'test_attribute\n  Input should be a valid string ' +
-        '[type=string_type, input_value=1234.56, input_type=float]\n'
-    )
     with pytest.raises(ValidationError) as exc_info:
         AnnotatedStrTest(test_attribute=1234.56)
-    assert error_message in str(exc_info.value)
+    assert (
+        'test_attribute\n  Input should be a valid string ' +
+        '[type=string_type, input_value=1234.56, input_type=float]\n'
+    ) in str(exc_info.value)
 
 
 def test_annotated_str_empty():
@@ -137,13 +134,12 @@ def test_annotated_str_empty():
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'test_attribute\n  String should have at least 1 character ' +
-        "[type=string_too_short, input_value='', input_type=str]\n"
-    )
     with pytest.raises(ValidationError) as exc_info:
         AnnotatedStrTest(test_attribute='')
-    assert error_message in str(exc_info.value)
+    assert (
+        'test_attribute\n  String should have at least 1 character ' +
+        "[type=string_too_short, input_value='', input_type=str]\n"
+    ) in str(exc_info.value)
 
 
 def test_annotated_str_blank():
@@ -153,13 +149,12 @@ def test_annotated_str_blank():
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'test_attribute\n  String should have at least 1 character ' +
-        "[type=string_too_short, input_value='   ', input_type=str]\n"
-    )
     with pytest.raises(ValidationError) as exc_info:
         AnnotatedStrTest(test_attribute='   ')
-    assert error_message in str(exc_info.value)
+    assert (
+        'test_attribute\n  String should have at least 1 character ' +
+        "[type=string_too_short, input_value='   ', input_type=str]\n"
+    ) in str(exc_info.value)
 
 
 class AnnotatedStrListTest(BaseModel):
@@ -186,13 +181,12 @@ def test_annotated_str_list_type():
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'test_attribute\n  Input should be a valid list ' +
-        "[type=list_type, input_value='abcd', input_type=str]\n"
-    )
     with pytest.raises(ValidationError) as exc_info:
         AnnotatedStrListTest(test_attribute='abcd')
-    assert error_message in str(exc_info.value)
+    assert (
+        'test_attribute\n  Input should be a valid list ' +
+        "[type=list_type, input_value='abcd', input_type=str]\n"
+    ) in str(exc_info.value)
 
 
 def test_annotated_str_list_empty():
@@ -202,13 +196,12 @@ def test_annotated_str_list_empty():
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'test_attribute\n  List should have at least 1 item after ' +
-        'validation, not 0 [type=too_short, input_value=[], input_type=list]\n'
-    )
     with pytest.raises(ValidationError) as exc_info:
         AnnotatedStrListTest(test_attribute=[])
-    assert error_message in str(exc_info.value)
+    assert (
+        'test_attribute\n  List should have at least 1 item after ' +
+        'validation, not 0 [type=too_short, input_value=[], input_type=list]\n'
+    ) in str(exc_info.value)
 
 
 class UrlTest(BaseModel):
@@ -241,14 +234,13 @@ def test_url_parsing(mock_urlopen_successful):
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
+    with pytest.raises(ValidationError) as exc_info:
+        UrlTest(test_attribute='invalid-url')
+    assert (
         'test_attribute\n  Input should be a valid URL, relative URL without' +
         " a base [type=url_parsing, input_value='invalid-url', " +
         'input_type=str]\n'
-    )
-    with pytest.raises(ValidationError) as exc_info:
-        UrlTest(test_attribute='invalid-url')
-    assert error_message in str(exc_info.value)
+    ) in str(exc_info.value)
 
 
 def test_url_unreachable(mock_urlopen_unreachable):
@@ -261,14 +253,13 @@ def test_url_unreachable(mock_urlopen_unreachable):
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
+    with pytest.raises(ValidationError) as exc_info:
+        UrlTest(test_attribute='https://unreachable.com')
+    assert (
         'test_attribute\n  Value error, Failed to access URL: ' +
         "'https://unreachable.com/'. [type=value_error, " +
         "input_value='https://unreachable.com', input_type=str]\n"
-    )
-    with pytest.raises(ValidationError) as exc_info:
-        UrlTest(test_attribute='https://unreachable.com')
-    assert error_message in str(exc_info.value)
+    ) in str(exc_info.value)
 
 
 class UrlListTest(BaseModel):
@@ -301,13 +292,12 @@ def test_url_list_type(mock_urlopen_successful):
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'test_attribute\n  Input should be a valid list ' +
-        "[type=list_type, input_value='abcd', input_type=str]\n"
-    )
     with pytest.raises(ValidationError) as exc_info:
         UrlListTest(test_attribute='abcd')
-    assert error_message in str(exc_info.value)
+    assert (
+        'test_attribute\n  Input should be a valid list ' +
+        "[type=list_type, input_value='abcd', input_type=str]\n"
+    ) in str(exc_info.value)
 
 
 def test_url_list_empty(mock_urlopen_successful):
@@ -320,10 +310,9 @@ def test_url_list_empty(mock_urlopen_successful):
     Raises:
         AssertionError: If the test fails.
     """
-    error_message = (
-        'test_attribute\n  List should have at least 1 item after ' +
-        'validation, not 0 [type=too_short, input_value=[], input_type=list]\n'
-    )
     with pytest.raises(ValidationError) as exc_info:
         UrlListTest(test_attribute=[])
-    assert error_message in str(exc_info.value)
+    assert (
+        'test_attribute\n  List should have at least 1 item after ' +
+        'validation, not 0 [type=too_short, input_value=[], input_type=list]\n'
+    ) in str(exc_info.value)
