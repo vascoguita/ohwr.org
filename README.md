@@ -82,6 +82,8 @@ theme.
   \>= 0.2.2
 * [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2#install)
   \>= 0.10.0
+* [pytest](https://docs.pytest.org/en/7.1.x/getting-started.html#install-pytest)
+  \>= 8.1.1
 
 ### Steps :footprints: <!-- markdownlint-disable-line MD024 -->
 

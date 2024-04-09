@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""CLI to generate content for ohwr.org."""
+"""Generate content for ohwr.org."""
 
 import argparse
 import logging

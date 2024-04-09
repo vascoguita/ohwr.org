@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 HUGO	= ${CURDIR}/src/hugo
-COMPOSE	= ${CURDIR}/src/compose
 PUBLIC	= ${CURDIR}/public
 
 .PHONY: all
@@ -15,7 +14,7 @@ all: test build
 
 .PHONY: build
 build:
-	python ${COMPOSE} ${CURDIR}/config.yaml
+	python ${CURDIR}/src/compose ${CURDIR}/config.yaml
 	hugo --gc --minify --source ${HUGO} --destination ${PUBLIC}
 
 ###############################################################################
@@ -31,7 +30,7 @@ run:
 ###############################################################################
 
 .PHONY: test
-test: lint-reuse lint-yaml lint-makefile lint-python lint-markdown
+test: lint-reuse lint-yaml lint-makefile lint-python lint-markdown test-pytest
 
 .PHONY: lint-reuse
 lint-reuse:
@@ -53,6 +52,9 @@ lint-python:
 lint-markdown:
 	markdownlint-cli2 '${CURDIR}/**/*.md' '#${CURDIR}/.venv' \
 		'#${CURDIR}/src/hugo/archetypes'
+
+test-pytest:
+	pytest ${CURDIR}/test
 
 ###############################################################################
 # Clean
