@@ -4,13 +4,25 @@
 
 """Test pydantic_utils module."""
 
+import io
+
 import pytest
-from config import Category, CategoryList, Contact, Project, ProjectList
-from pydantic import BaseModel, HttpUrl, ValidationError
-from test_pydantic_utils import (
-    mock_urlopen_successful,
-    mock_urlopen_unreachable,
+from config import (
+    Category,
+    CategoryList,
+    Config,
+    Contact,
+    Project,
+    ProjectList,
 )
+from pydantic import (
+    BaseModel,
+    DirectoryPath,
+    FilePath,
+    HttpUrl,
+    ValidationError,
+)
+from pytest_utils import mock_urlopen_successful, mock_urlopen_unreachable
 
 
 def test_contact_extra():
@@ -694,4 +706,665 @@ def test_project_list_empty():
     assert (
         'test_attribute\n  List should have at least 1 item after ' +
         'validation, not 0 [type=too_short, input_value=[], input_type=list]\n'
+    ) in str(exc_info.value)
+
+
+def test_config_extra(mock_urlopen_successful):
+    """
+    Test Config when extra attributes are forbidden.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+            extra=1,
+        )
+    assert (
+        'extra\n  Extra inputs are not permitted ' +
+        '[type=extra_forbidden, input_value=1, input_type=int]\n'
+    ) in str(exc_info.value)
+
+
+def test_config_sources(mock_urlopen_successful):
+    """
+    Test Config sources.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config = Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+        }],
+    )
+    assert config.sources == DirectoryPath('./src/hugo')
+
+
+def test_config_sources_type(mock_urlopen_successful):
+    """
+    Test Config sources when the type is not a DirectoryPath.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources=1234.56,
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        'sources\n  Input is not a valid path ' +
+        '[type=path_type, input_value=1234.56, input_type=float]'
+    ) in str(exc_info.value)
+
+
+def test_config_sources_non_existent(mock_urlopen_successful):
+    """
+    Test Config when the sources directory does not exist.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./non/existent/directory',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        'sources\n  Path does not point to a directory ' +
+        "[type=path_not_directory, input_value='./non/existent/directory', " +
+        'input_type=str]'
+    ) in str(exc_info.value)
+
+
+def test_config_sources_missing(mock_urlopen_successful):
+    """
+    Test Config when the sources are missing.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        'sources\n  Field required [type=missing, ' +
+        "input_value={'licenses': './third_par...': 'valid@email.com'}}]}, " +
+        'input_type=dict]'
+    ) in str(exc_info.value)
+
+
+def test_config_licenses(mock_urlopen_successful):
+    """
+    Test Config licenses.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config = Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+        }],
+    )
+    assert config.licenses == FilePath(
+        './third_party/spdx/license-list-data/json/licenses.json',
+    )
+
+
+def test_config_licenses_type(mock_urlopen_successful):
+    """
+    Test Config licenses when the type is not a string.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses=1234.56,
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        'licenses\n  Input is not a valid path [type=path_type, ' +
+        'input_value=1234.56, input_type=float]'
+    ) in str(exc_info.value)
+
+
+def test_config_licenses_non_existent(mock_urlopen_successful):
+    """
+    Test Config when the licenses file does not exist.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./non/existent/file',
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        'licenses\n  Path does not point to a file [type=path_not_file, ' +
+        "input_value='./non/existent/file', input_type=str]"
+    ) in str(exc_info.value)
+
+
+def test_config_licenses_missing(mock_urlopen_successful):
+    """
+    Test Config when the licenses are missing.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        'licenses\n  Field required [type=missing, ' +
+        "input_value={'sources': './src/hugo',...': 'valid@email.com'}}]}, " +
+        'input_type=dict]'
+    ) in str(exc_info.value)
+
+
+def test_config_projects(mock_urlopen_successful):
+    """
+    Test Config projects.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config = Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+        }],
+    )
+    assert config.projects == [Project(
+        repository='https://example.com/project.git',
+        contact={'name': 'Contact Name', 'email': 'valid@email.com'},
+    )]
+
+
+def test_config_projects_type(mock_urlopen_successful):
+    """
+    Test Config projects when the type is not a list.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            projects=1234.56,
+        )
+    assert (
+        'projects\n  Input should be a valid list ' +
+        '[type=list_type, input_value=1234.56, input_type=float]\n'
+    ) in str(exc_info.value)
+
+
+def test_config_projects_empty(mock_urlopen_successful):
+    """
+    Test Config projects when the list is empty.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            projects=[],
+        )
+    assert (
+        'projects\n  List should have at least 1 item after validation, ' +
+        'not 0 [type=too_short, input_value=[], input_type=list]\n'
+    ) in str(exc_info.value)
+
+
+def test_config_projects_missing(mock_urlopen_successful):
+    """
+    Test Config when the projects are missing.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        )
+    assert (
+        'projects\n  Field required [type=missing, ' +
+        "input_value={'sources': './src/hugo',...ata/json/licenses.json'}, " +
+        'input_type=dict]'
+    ) in str(exc_info.value)
+
+
+def test_config_log_level(mock_urlopen_successful):
+    """
+    Test Config log_level.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config = Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        log_level='DEBUG',
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+        }],
+    )
+    assert config.log_level == 'DEBUG'
+
+
+def test_config_log_level_default(mock_urlopen_successful):
+    """
+    Test Config log_level default value.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config = Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+        }],
+    )
+    assert config.log_level == 'INFO'
+
+
+def test_config_log_level_literal(mock_urlopen_successful):
+    """
+    Test Config log_level when the value is not one of the valid literals.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            log_level='WRONG',
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        "log_level\n  Input should be 'DEBUG', 'INFO', 'WARNING', 'ERROR' " +
+        "or 'CRITICAL' [type=literal_error, input_value='WRONG', " +
+        'input_type=str]'
+    ) in str(exc_info.value)
+
+
+def test_config_categories(mock_urlopen_successful):
+    """
+    Test Config categories.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config = Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        categories=[{'name': 'Category Name', 'description': 'Description'}],
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+        }],
+    )
+    assert config.categories == [
+        Category(name='Category Name', description='Description'),
+    ]
+
+
+def test_config_categories_type(mock_urlopen_successful):
+    """
+    Test Config categories when the type is not a list.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            categories=1234.56,
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        'categories\n  Input should be a valid list ' +
+        '[type=list_type, input_value=1234.56, input_type=float]\n'
+    ) in str(exc_info.value)
+
+
+def test_config_categories_empty(mock_urlopen_successful):
+    """
+    Test Config categories when the list is empty.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            categories=[],
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+            }],
+        )
+    assert (
+        'categories\n  List should have at least 1 item after validation, ' +
+        'not 0 [type=too_short, input_value=[], input_type=list]\n'
+    ) in str(exc_info.value)
+
+
+def test_config_categories_match(mock_urlopen_successful):
+    """
+    Test Config categories match Project categories.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config = Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        categories=[{'name': 'Category Name', 'description': 'Description'}],
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+            'categories': ['Category Name'],
+        }],
+    )
+    assert config.projects[0].categories[0] == config.categories[0].name
+
+
+def test_config_categories_no_match(mock_urlopen_successful):
+    """
+    Test Config categories when Project categories do not match.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        Config(
+            sources='./src/hugo',
+            licenses='./third_party/spdx/license-list-data/json/licenses.json',
+            categories=[
+                {'name': 'Category Name', 'description': 'Description'},
+            ],
+            projects=[{
+                'repository': 'https://example.com/project.git',
+                'contact': {
+                    'name': 'Contact Name', 'email': 'valid@email.com',
+                },
+                'categories': ['Wrong Name'],
+            }],
+        )
+    assert (
+        "Project 'https://example.com/project.git' with unknown categories: " +
+        "'{'Wrong Name'}'. [type=value_error, input_value={'sources': " +
+        "'./src/hugo',...ries': ['Wrong Name']}]}, input_type=dict]"
+    ) in str(exc_info.value)
+
+
+def test_config_from_yaml_str(mock_urlopen_successful):
+    """
+    Test Config from YAML.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config_yaml = """
+---
+# SPDX-FileCopyrightText: 2024 CERN (home.cern)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+sources: './src/hugo'
+licenses: './third_party/spdx/license-list-data/json/licenses.json'
+projects:
+- repository: 'https://example.com/project.git'
+  contact:
+    name: 'Contact Name'
+    email: 'valid@email.com'
+"""
+    config = Config.from_yaml(config_yaml)
+    assert config == Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+        }],
+    )
+
+
+def test_config_from_yaml_text_io(mock_urlopen_successful):
+    """
+    Test Config from YAML.
+
+    Parameters:
+        mock_urlopen_successful: A fixture providing mocked urlopen.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config_yaml = """
+---
+# SPDX-FileCopyrightText: 2024 CERN (home.cern)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+sources: './src/hugo'
+licenses: './third_party/spdx/license-list-data/json/licenses.json'
+projects:
+- repository: 'https://example.com/project.git'
+  contact:
+    name: 'Contact Name'
+    email: 'valid@email.com'
+"""
+    config = Config.from_yaml(io.StringIO(config_yaml))
+    assert config == Config(
+        sources='./src/hugo',
+        licenses='./third_party/spdx/license-list-data/json/licenses.json',
+        projects=[{
+            'repository': 'https://example.com/project.git',
+            'contact': {
+                'name': 'Contact Name', 'email': 'valid@email.com',
+            },
+        }],
+    )
+
+
+def test_config_from_yaml_parsing():
+    """
+    Test Config from YAML when the YAML is not valid.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValueError) as exc_info:
+        Config.from_yaml('unbalanced blackets: ][')
+    assert (
+        'Failed to load YAML configuration:\n↳ while parsing a block node\n' +
+        "expected the node content, but found ']'"
+    ) in str(exc_info.value)
+
+
+def test_config_from_yaml_valid():
+    """
+    Test Config from YAML when the Config is not valid.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    config_yaml = """
+---
+# SPDX-FileCopyrightText: 2024 CERN (home.cern)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+sources: './src/hugo'
+licenses: './third_party/spdx/license-list-data/json/licenses.json'
+"""
+    with pytest.raises(ValueError) as exc_info:
+        Config.from_yaml(config_yaml)
+    assert (
+        'YAML configuration is not valid:\n↳ 1 validation error for ' +
+        'Config\nprojects\n  Field required [type=missing, ' +
+        "input_value={'sources': './src/hugo',...ata/json/licenses.json'}, " +
+        'input_type=dict]'
     ) in str(exc_info.value)

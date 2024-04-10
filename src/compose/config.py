@@ -87,7 +87,8 @@ class Config(BaseModelForbidExtra):
                     raise ValueError(
                         "Project '{0}' with unknown categories: '{1}'.".format(
                             project.repository, unknown,
-                        ))
+                        ),
+                    )
         return self
 
     @classmethod
@@ -109,10 +110,10 @@ class Config(BaseModelForbidExtra):
         except yaml.YAMLError as yaml_error:
             raise ValueError(
                 'Failed to load YAML configuration:\n↳ {0}'.format(yaml_error),
-                )
+            )
         try:
             return cls(**config)
-        except (ValidationError, KeyError) as config_error:
+        except ValidationError as config_error:
             raise ValueError(
                 'YAML configuration is not valid:\n↳ {0}'.format(config_error),
             )
