@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2024 CERN (home.cern)
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+"""Load configuration."""
+
+
+import os
+import subprocess
+from abc import ABC, abstractmethod
+from tempfile import TemporaryDirectory
+from urllib import request
+from urllib.error import URLError
+
+from pydantic import HttpUrl, ValidationError, validate_call
+from pydantic_utils import AnnotatedStr, BaseModelForbidExtra
+
+
+class Repository(BaseModelForbidExtra, ABC):
+    """Abstract base class representing a repository."""
+
+    @abstractmethod
+    def get_file(self, filename: str):
+        """
+        Abstract method to get a file from the repository.
+
+        Args:
+            filename: The name of the file to retrieve.
+
+        Raises:
+            NotImplementedError: If not implemented in a subclass.
+        """
+
+    @classmethod
+    @validate_call
+    def create(cls, url: HttpUrl):
+        """
+        Create a repository object based on the provided URL.
+
+        Parameters:
+            url: Repository URL.
+
+        Returns:
+            Union[GitHubRepository, GenericRepository]: Repository object.
+
+        Raises:
+            ValueError: If parsing url or creating repository fails.
+        """
+        if url.host == 'github.com':
+            parts = url.path.split('/')
+            try:
+                owner = parts[1]
+            except IndexError as owner_error:
+                raise ValueError(
+                    "Failed to parse repository owner from '{0}':\n{1}".format(
+                        url, owner_error,
+                    ),
+                )
+            try:
+                repo = parts[2].removesuffix('.git')
+            except IndexError as repo_error:
+                raise ValueError(
+                    "Failed to parse repository name from '{0}':\n{1}".format(
+                        url, repo_error,
+                    ),
+                )
+            try:
+                return GitHubRepository(owner=owner, repo=repo)
+            except ValidationError as github_error:
+                raise ValueError(
+                    "GitHub repository '{0}' is not valid:\n{1}".format(
+                        url, github_error,
+                    ),
+                )
+        else:
+            try:
+                return GenericRepository(url=url)
+            except ValidationError as generic_error:
+                raise ValueError(
+                    "Repository '{0}' is not valid:\n{1}".format(
+                        url, generic_error,
+                    ),
+                )
+
+
+class GitHubRepository(Repository):
+
+    owner: AnnotatedStr
+    repo: AnnotatedStr
+
+    @validate_call
+    def get_file(self, filename: AnnotatedStr):
+        req = request.Request(
+            'https://api.github.com/repos/{0}/{1}/contents/{2}'.format(
+                self.repo, self.owner, filename,
+            ),
+            headers={'Accept': 'application/vnd.github.v3.raw'},
+        )
+        try:
+            with request.urlopen(req, timeout=5) as response:  # noqa: S310
+                return response
+        except (URLError, ValueError) as url_error:
+            raise ConnectionError(
+                "Failed to request '{0}':\n{1}".format(
+                    req.full_url, url_error,
+                ),
+            )
+
+
+class GenericRepository(Repository):
+
+    url: HttpUrl
+
+    @validate_call
+    def get_file(self, filename: AnnotatedStr):
+        tmpdir = TemporaryDirectory().name
+        try:
+            subprocess.check_output(
+                'git clone --depth 1 {0} {1}'.format(self.url, tmpdir),
+                stderr=subprocess.STDOUT,
+                shell=True,  # noqa: S602
+            )
+        except subprocess.CalledProcessError as clone_error:
+            raise RuntimeError(
+                "Failed to clone '{0}':\n{1}".format(self.url, clone_error),
+            )
+        try:
+            with open(os.path.join(tmpdir, filename)) as repository_file:
+                return repository_file
+        except FileNotFoundError as file_error:
+            raise ValueError(
+                "File '{0}' not found in '{1}':\n{2}".format(
+                    filename, self.url, file_error,
+                ),
+            )

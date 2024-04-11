@@ -5,7 +5,7 @@
 """Load configuration."""
 
 
-from typing import Annotated, Literal, Optional, TextIO, Union
+from typing import Annotated, Literal, Optional, TextIO
 
 import yaml
 from pydantic import (
@@ -60,7 +60,7 @@ class Config(BaseModelForbidExtra):
     licenses: FilePath
     log_level: Optional[
         Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-    ] = 'INFO'
+    ] = None
     categories: Optional[CategoryList] = None
     projects: ProjectList
 
@@ -92,12 +92,12 @@ class Config(BaseModelForbidExtra):
         return self
 
     @classmethod
-    def from_yaml(cls, config_yaml: Union[str, TextIO]):
+    def from_yaml(cls, config_yaml: TextIO):
         """
-        Load the configuration from a YAML file or string.
+        Load the configuration from a YAML file.
 
         Parameters:
-            config_yaml: YAML file or string.
+            config_yaml: YAML file.
 
         Returns:
             Config: The configuration object with validated category names.
@@ -109,11 +109,11 @@ class Config(BaseModelForbidExtra):
             config = yaml.safe_load(config_yaml)
         except yaml.YAMLError as yaml_error:
             raise ValueError(
-                'Failed to load YAML configuration:\n↳ {0}'.format(yaml_error),
+                'Failed to load YAML configuration:\n{0}'.format(yaml_error),
             )
         try:
             return cls(**config)
-        except ValidationError as config_error:
+        except (ValidationError, TypeError) as config_error:
             raise ValueError(
-                'YAML configuration is not valid:\n↳ {0}'.format(config_error),
+                'YAML configuration is not valid:\n{0}'.format(config_error),
             )

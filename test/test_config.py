@@ -1064,29 +1064,6 @@ def test_config_log_level(mock_urlopen_successful):
     assert config.log_level == 'DEBUG'
 
 
-def test_config_log_level_default(mock_urlopen_successful):
-    """
-    Test Config log_level default value.
-
-    Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    config = Config(
-        sources='./src/hugo',
-        licenses='./third_party/spdx/license-list-data/json/licenses.json',
-        projects=[{
-            'repository': 'https://example.com/project.git',
-            'contact': {
-                'name': 'Contact Name', 'email': 'valid@email.com',
-            },
-        }],
-    )
-    assert config.log_level == 'INFO'
-
-
 def test_config_log_level_literal(mock_urlopen_successful):
     """
     Test Config log_level when the value is not one of the valid literals.
@@ -1255,44 +1232,7 @@ def test_config_categories_no_match(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_from_yaml_str(mock_urlopen_successful):
-    """
-    Test Config from YAML.
-
-    Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    config_yaml = """
----
-# SPDX-FileCopyrightText: 2024 CERN (home.cern)
-#
-# SPDX-License-Identifier: BSD-3-Clause
-
-sources: './src/hugo'
-licenses: './third_party/spdx/license-list-data/json/licenses.json'
-projects:
-- repository: 'https://example.com/project.git'
-  contact:
-    name: 'Contact Name'
-    email: 'valid@email.com'
-"""
-    config = Config.from_yaml(config_yaml)
-    assert config == Config(
-        sources='./src/hugo',
-        licenses='./third_party/spdx/license-list-data/json/licenses.json',
-        projects=[{
-            'repository': 'https://example.com/project.git',
-            'contact': {
-                'name': 'Contact Name', 'email': 'valid@email.com',
-            },
-        }],
-    )
-
-
-def test_config_from_yaml_text_io(mock_urlopen_successful):
+def test_config_from_yaml(mock_urlopen_successful):
     """
     Test Config from YAML.
 
@@ -1339,7 +1279,7 @@ def test_config_from_yaml_parsing():
     with pytest.raises(ValueError) as exc_info:
         Config.from_yaml('unbalanced blackets: ][')
     assert (
-        'Failed to load YAML configuration:\n↳ while parsing a block node\n' +
+        'Failed to load YAML configuration:\nwhile parsing a block node\n' +
         "expected the node content, but found ']'"
     ) in str(exc_info.value)
 
@@ -1363,7 +1303,7 @@ licenses: './third_party/spdx/license-list-data/json/licenses.json'
     with pytest.raises(ValueError) as exc_info:
         Config.from_yaml(config_yaml)
     assert (
-        'YAML configuration is not valid:\n↳ 1 validation error for ' +
+        'YAML configuration is not valid:\n1 validation error for ' +
         'Config\nprojects\n  Field required [type=missing, ' +
         "input_value={'sources': './src/hugo',...ata/json/licenses.json'}, " +
         'input_type=dict]'

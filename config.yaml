@@ -7,8 +7,6 @@ sources: './src/hugo'
 
 licenses: './third_party/spdx/license-list-data/json/licenses.json'
 
-log_level: 'INFO'
-
 categories:
   - name: 'FMC Carriers'
     description: 'Boards that connect FMC Modules'
