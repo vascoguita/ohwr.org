@@ -2,11 +2,10 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Load configuration."""
-
+"""Handle git repositories."""
 
 import os
-import subprocess
+import subprocess  # noqa: S404
 from abc import ABC, abstractmethod
 from tempfile import TemporaryDirectory
 from urllib import request
@@ -47,26 +46,9 @@ class Repository(BaseModelForbidExtra, ABC):
             ValueError: If parsing url or creating repository fails.
         """
         if url.host == 'github.com':
-            parts = url.path.split('/')
             try:
-                owner = parts[1]
-            except IndexError as owner_error:
-                raise ValueError(
-                    "Failed to parse repository owner from '{0}':\n{1}".format(
-                        url, owner_error,
-                    ),
-                )
-            try:
-                repo = parts[2].removesuffix('.git')
-            except IndexError as repo_error:
-                raise ValueError(
-                    "Failed to parse repository name from '{0}':\n{1}".format(
-                        url, repo_error,
-                    ),
-                )
-            try:
-                return GitHubRepository(owner=owner, repo=repo)
-            except ValidationError as github_error:
+                return GitHubRepository.from_url(url)
+            except (ValidationError, ValueError) as github_error:
                 raise ValueError(
                     "GitHub repository '{0}' is not valid:\n{1}".format(
                         url, github_error,
@@ -77,22 +59,35 @@ class Repository(BaseModelForbidExtra, ABC):
                 return GenericRepository(url=url)
             except ValidationError as generic_error:
                 raise ValueError(
-                    "Repository '{0}' is not valid:\n{1}".format(
+                    "Generic repository '{0}' is not valid:\n{1}".format(
                         url, generic_error,
                     ),
                 )
 
 
 class GitHubRepository(Repository):
+    """Represents a GitHub repository."""
 
     owner: AnnotatedStr
     repo: AnnotatedStr
 
     @validate_call
     def get_file(self, filename: AnnotatedStr):
+        """
+        Get the content of a file from the repository.
+
+        Parameters:
+            filename: The name of the file to retrieve.
+
+        Returns:
+            Response: The response object containing the content of the file.
+
+        Raises:
+            ConnectionError: If requesting the file content fails.
+        """
         req = request.Request(
             'https://api.github.com/repos/{0}/{1}/contents/{2}'.format(
-                self.repo, self.owner, filename,
+                self.owner, self.repo, filename,
             ),
             headers={'Accept': 'application/vnd.github.v3.raw'},
         )
@@ -106,13 +101,68 @@ class GitHubRepository(Repository):
                 ),
             )
 
+    @classmethod
+    @validate_call
+    def from_url(cls, url: HttpUrl):
+        """
+        Create a GitHubRepository object from a given URL.
+
+        Args:
+            url: The URL of the GitHub repository.
+
+        Returns:
+            GitHubRepository: GitHubRepository object.
+
+        Raises:
+            ValueError: If parsing the repository URL fails.
+        """
+        parts = url.path.removeprefix('/').split('/', 1)
+        try:
+            owner = parts[0]
+        except IndexError as owner_error:
+            raise ValueError(
+                "Failed to parse repository owner from '{0}':\n{1}".format(
+                    url, owner_error,
+                ),
+            )
+        try:
+            repo = parts[1].removesuffix('.git')
+        except IndexError as repo_error:
+            raise ValueError(
+                "Failed to parse repository name from '{0}':\n{1}".format(
+                    url, repo_error,
+                ),
+            )
+        try:
+            return cls(owner=owner, repo=repo)
+        except ValidationError as github_error:
+            raise ValueError(
+                "GitHub repository '{0}' is not valid:\n{1}".format(
+                    url, github_error,
+                ),
+            )
+
 
 class GenericRepository(Repository):
+    """Represents a generic repository."""
 
     url: HttpUrl
 
     @validate_call
     def get_file(self, filename: AnnotatedStr):
+        """
+        Get the content of a file from the repository.
+
+        Args:
+            filename: The name of the file to retrieve.
+
+        Returns:
+            TextIO: The file object containing the content of the file.
+
+        Raises:
+            RuntimeError: If cloning the repository fails.
+            ValueError: If the specified file is not found in the repository.
+        """
         tmpdir = TemporaryDirectory().name
         try:
             subprocess.check_output(
