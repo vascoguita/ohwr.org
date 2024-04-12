@@ -6,6 +6,7 @@
 
 import pytest
 from pydantic import HttpUrl, ValidationError
+from pytest_utils import mock_check_output, mock_temporary_directory
 from repository import GenericRepository, GitHubRepository, Repository
 
 
@@ -63,3 +64,99 @@ def test_generic_repository_url_missing():
     assert (
         'url\n  Field required [type=missing, input_value={}, input_type=dict]'
     ) in str(exc_info.value)
+
+
+def test_generic_repository_get_file_extra():
+    """
+    Test GenericRepository get_file when extra arguments are forbidden.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        GenericRepository(url='https://example.com/project.git').get_file(
+            filename='filename', extra=1,
+        )
+    assert (
+        'extra\n  Unexpected keyword argument ' +
+        '[type=unexpected_keyword_argument, input_value=1, input_type=int]'
+    ) in str(exc_info.value)
+
+
+def test_generic_repository_get_file_type():
+    """
+    Test Project get_file when the filename type is not a string.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        GenericRepository(url='https://example.com/project.git').get_file(
+            filename=1234.56,
+        )
+    assert (
+        'filename\n  Input should be a valid string [type=string_type, ' +
+        'input_value=1234.56, input_type=float]'
+    ) in str(exc_info.value)
+
+
+def test_generic_repository_get_file_empty():
+    """
+    Test Project get_file when the filename is empty.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        GenericRepository(url='https://example.com/project.git').get_file(
+            filename='',
+        )
+    assert (
+        'filename\n  String should have at least 1 character ' +
+        "[type=string_too_short, input_value='', input_type=str]\n"
+    ) in str(exc_info.value)
+
+
+def test_generic_repository_get_file_blank():
+    """
+    Test Project get_file when the filename is blank.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        GenericRepository(url='https://example.com/project.git').get_file(
+            filename='   ',
+        )
+    assert (
+        'filename\n  String should have at least 1 character ' +
+        "[type=string_too_short, input_value='   ', input_type=str]\n"
+    ) in str(exc_info.value)
+
+
+def test_generic_repository_get_file_missing():
+    """
+    Test Project get_file when the filename is missing.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    with pytest.raises(ValidationError) as exc_info:
+        GenericRepository(url='https://example.com/project.git').get_file()
+    assert (
+        'filename\n  Missing required argument [type=missing_argument, ' +
+        "input_value=ArgsKwargs((GenericReposi...le.com/project.git')),)), " +
+        'input_type=ArgsKwargs]'
+    ) in str(exc_info.value)
+
+
+def test_generic_repository_get_file(mock_check_output, mock_temporary_directory):
+    """
+    Test Project get_file.
+
+    Raises:
+        AssertionError: If the test fails.
+    """
+    GenericRepository(url='https://example.com/project.git').get_file('filename')
+
+
