@@ -22,7 +22,7 @@ from pydantic import (
     HttpUrl,
     ValidationError,
 )
-from pytest_utils import mock_urlopen_successful, mock_urlopen_unreachable
+from pytest_utils import mock_urlopen, mock_urlopen_unreachable
 
 
 def test_contact_extra():
@@ -368,12 +368,12 @@ def test_category_list_empty():
     ) in str(exc_info.value)
 
 
-def test_project_extra(mock_urlopen_successful):
+def test_project_extra(mock_urlopen):
     """
     Test Project when extra attributes are forbidden.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -390,12 +390,12 @@ def test_project_extra(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_project_repository(mock_urlopen_successful):
+def test_project_repository(mock_urlopen):
     """
     Test Project repository.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -407,12 +407,12 @@ def test_project_repository(mock_urlopen_successful):
     assert project.repository == HttpUrl('https://example.com/project.git')
 
 
-def test_project_repository_parsing(mock_urlopen_successful):
+def test_project_repository_parsing(mock_urlopen):
     """
     Test Project repository when the URL is not valid.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -467,12 +467,12 @@ def test_project_repository_missing():
     ) in str(exc_info.value)
 
 
-def test_project_contact(mock_urlopen_successful):
+def test_project_contact(mock_urlopen):
     """
     Test Project contact.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -486,12 +486,12 @@ def test_project_contact(mock_urlopen_successful):
     )
 
 
-def test_project_contact_parsing(mock_urlopen_successful):
+def test_project_contact_parsing(mock_urlopen):
     """
     Test Project when the contact is not valid.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -508,12 +508,12 @@ def test_project_contact_parsing(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_project_contact_missing(mock_urlopen_successful):
+def test_project_contact_missing(mock_urlopen):
     """
     Test Project when the contact is missing.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -527,12 +527,12 @@ def test_project_contact_missing(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_project_featured(mock_urlopen_successful):
+def test_project_featured(mock_urlopen):
     """
     Test Project featured.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -545,12 +545,12 @@ def test_project_featured(mock_urlopen_successful):
     assert project.featured is True
 
 
-def test_project_featured_default(mock_urlopen_successful):
+def test_project_featured_default(mock_urlopen):
     """
     Test Project featured default value.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -562,12 +562,12 @@ def test_project_featured_default(mock_urlopen_successful):
     assert project.featured is False
 
 
-def test_project_featured_type(mock_urlopen_successful):
+def test_project_featured_type(mock_urlopen):
     """
     Test Project featured when the type is not a bool.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -584,12 +584,12 @@ def test_project_featured_type(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_project_categories(mock_urlopen_successful):
+def test_project_categories(mock_urlopen):
     """
     Test Project categories.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -602,12 +602,12 @@ def test_project_categories(mock_urlopen_successful):
     assert project.categories == ['Category 1']
 
 
-def test_project_categories_type(mock_urlopen_successful):
+def test_project_categories_type(mock_urlopen):
     """
     Test Project categories when the type is not a list.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -624,12 +624,12 @@ def test_project_categories_type(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_project_categories_empty(mock_urlopen_successful):
+def test_project_categories_empty(mock_urlopen):
     """
     Test Project categories when the list is empty.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -652,12 +652,12 @@ class ProjectListTest(BaseModel):
     test_attribute: ProjectList
 
 
-def test_project_list(mock_urlopen_successful):
+def test_project_list(mock_urlopen):
     """
     Test case for ProjectList type.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -672,12 +672,12 @@ def test_project_list(mock_urlopen_successful):
     )]
 
 
-def test_project_list_type(mock_urlopen_successful):
+def test_project_list_type(mock_urlopen):
     """
     Test ProjectList when the type is not a list.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -709,12 +709,12 @@ def test_project_list_empty():
     ) in str(exc_info.value)
 
 
-def test_config_extra(mock_urlopen_successful):
+def test_config_extra(mock_urlopen):
     """
     Test Config when extra attributes are forbidden.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -737,12 +737,12 @@ def test_config_extra(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_sources(mock_urlopen_successful):
+def test_config_sources(mock_urlopen):
     """
     Test Config sources.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -760,12 +760,12 @@ def test_config_sources(mock_urlopen_successful):
     assert config.sources == DirectoryPath('./src/hugo')
 
 
-def test_config_sources_type(mock_urlopen_successful):
+def test_config_sources_type(mock_urlopen):
     """
     Test Config sources when the type is not a DirectoryPath.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -787,12 +787,12 @@ def test_config_sources_type(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_sources_non_existent(mock_urlopen_successful):
+def test_config_sources_non_existent(mock_urlopen):
     """
     Test Config when the sources directory does not exist.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -815,12 +815,12 @@ def test_config_sources_non_existent(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_sources_missing(mock_urlopen_successful):
+def test_config_sources_missing(mock_urlopen):
     """
     Test Config when the sources are missing.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -842,12 +842,12 @@ def test_config_sources_missing(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_licenses(mock_urlopen_successful):
+def test_config_licenses(mock_urlopen):
     """
     Test Config licenses.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -867,12 +867,12 @@ def test_config_licenses(mock_urlopen_successful):
     )
 
 
-def test_config_licenses_type(mock_urlopen_successful):
+def test_config_licenses_type(mock_urlopen):
     """
     Test Config licenses when the type is not a string.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -894,12 +894,12 @@ def test_config_licenses_type(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_licenses_non_existent(mock_urlopen_successful):
+def test_config_licenses_non_existent(mock_urlopen):
     """
     Test Config when the licenses file does not exist.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -921,12 +921,12 @@ def test_config_licenses_non_existent(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_licenses_missing(mock_urlopen_successful):
+def test_config_licenses_missing(mock_urlopen):
     """
     Test Config when the licenses are missing.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -948,12 +948,12 @@ def test_config_licenses_missing(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_projects(mock_urlopen_successful):
+def test_config_projects(mock_urlopen):
     """
     Test Config projects.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -974,12 +974,12 @@ def test_config_projects(mock_urlopen_successful):
     )]
 
 
-def test_config_projects_type(mock_urlopen_successful):
+def test_config_projects_type(mock_urlopen):
     """
     Test Config projects when the type is not a list.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -996,12 +996,12 @@ def test_config_projects_type(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_projects_empty(mock_urlopen_successful):
+def test_config_projects_empty(mock_urlopen):
     """
     Test Config projects when the list is empty.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1018,12 +1018,12 @@ def test_config_projects_empty(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_projects_missing(mock_urlopen_successful):
+def test_config_projects_missing(mock_urlopen):
     """
     Test Config when the projects are missing.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1040,12 +1040,12 @@ def test_config_projects_missing(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_log_level(mock_urlopen_successful):
+def test_config_log_level(mock_urlopen):
     """
     Test Config log_level.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1064,12 +1064,12 @@ def test_config_log_level(mock_urlopen_successful):
     assert config.log_level == 'DEBUG'
 
 
-def test_config_log_level_literal(mock_urlopen_successful):
+def test_config_log_level_literal(mock_urlopen):
     """
     Test Config log_level when the value is not one of the valid literals.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1093,12 +1093,12 @@ def test_config_log_level_literal(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_categories(mock_urlopen_successful):
+def test_config_categories(mock_urlopen):
     """
     Test Config categories.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1119,12 +1119,12 @@ def test_config_categories(mock_urlopen_successful):
     ]
 
 
-def test_config_categories_type(mock_urlopen_successful):
+def test_config_categories_type(mock_urlopen):
     """
     Test Config categories when the type is not a list.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1147,12 +1147,12 @@ def test_config_categories_type(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_categories_empty(mock_urlopen_successful):
+def test_config_categories_empty(mock_urlopen):
     """
     Test Config categories when the list is empty.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1175,12 +1175,12 @@ def test_config_categories_empty(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_categories_match(mock_urlopen_successful):
+def test_config_categories_match(mock_urlopen):
     """
     Test Config categories match Project categories.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1200,12 +1200,12 @@ def test_config_categories_match(mock_urlopen_successful):
     assert config.projects[0].categories[0] == config.categories[0].name
 
 
-def test_config_categories_no_match(mock_urlopen_successful):
+def test_config_categories_no_match(mock_urlopen):
     """
     Test Config categories when Project categories do not match.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1232,12 +1232,12 @@ def test_config_categories_no_match(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_config_from_yaml(mock_urlopen_successful):
+def test_config_from_yaml(mock_urlopen):
     """
     Test Config from YAML.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.

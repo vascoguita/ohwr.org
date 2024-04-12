@@ -13,7 +13,7 @@ from pydantic_utils import (
     Url,
     UrlList,
 )
-from pytest_utils import mock_urlopen_successful, mock_urlopen_unreachable
+from pytest_utils import mock_urlopen, mock_urlopen_unreachable
 
 
 class BaseModelForbidExtraTest(BaseModelForbidExtra):
@@ -178,12 +178,12 @@ class UrlTest(BaseModel):
     test_attribute: Url
 
 
-def test_url(mock_urlopen_successful):
+def test_url(mock_urlopen):
     """
     Test case for Url type.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -192,12 +192,12 @@ def test_url(mock_urlopen_successful):
     assert test_object.test_attribute == HttpUrl('https://reachable.com')
 
 
-def test_url_parsing(mock_urlopen_successful):
+def test_url_parsing(mock_urlopen):
     """
     Test Url when the URL is not valid.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -236,12 +236,12 @@ class UrlListTest(BaseModel):
     test_attribute: UrlList
 
 
-def test_url_list(mock_urlopen_successful):
+def test_url_list(mock_urlopen):
     """
     Test case for UrlList type.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -250,12 +250,12 @@ def test_url_list(mock_urlopen_successful):
     assert test_object.test_attribute == [HttpUrl('https://reachable.com')]
 
 
-def test_url_list_type(mock_urlopen_successful):
+def test_url_list_type(mock_urlopen):
     """
     Test UrlList when the type is not a list.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -268,12 +268,12 @@ def test_url_list_type(mock_urlopen_successful):
     ) in str(exc_info.value)
 
 
-def test_url_list_empty(mock_urlopen_successful):
+def test_url_list_empty(mock_urlopen):
     """
     Test UrlList when the list is empty.
 
     Parameters:
-        mock_urlopen_successful: A fixture providing mocked urlopen.
+        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.

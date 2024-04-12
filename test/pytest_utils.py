@@ -14,12 +14,12 @@ import pytest
 
 
 @pytest.fixture
-def mock_urlopen_successful():
+def mock_urlopen():
     """
-    Fixture for mocking successful urlopen requests.
+    Fixture for mocking urlopen requests.
 
     Yields:
-        MagicMock: A mock object for successful urlopen requests.
+        MagicMock: A mock object for urlopen requests.
     """
     with patch.object(request, 'urlopen') as mock_urlopen:
         mock_response = Mock()
