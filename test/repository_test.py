@@ -6,7 +6,7 @@
 
 import pytest
 from pydantic import HttpUrl, ValidationError
-from pytest_utils import mock_check_output, mock_temporary_directory, mock_open
+from pytest_utils import mock_check_output, mock_open, mock_temporary_directory
 from repository import GenericRepository
 
 
@@ -150,7 +150,9 @@ def test_generic_repository_get_file_missing():
     ) in str(exc_info.value)
 
 
-@pytest.mark.usefixtures('mock_temporary_directory', 'mock_check_output', 'mock_open')
+@pytest.mark.usefixtures(
+    'mock_temporary_directory', 'mock_check_output', 'mock_open',
+)
 def test_generic_repository_get_file():
     """
     Test Project get_file.
@@ -158,4 +160,5 @@ def test_generic_repository_get_file():
     Raises:
         AssertionError: If the test fails.
     """
-    GenericRepository(url='https://example.com/project.git').get_file('filename')
+    repository = GenericRepository(url='https://example.com/project.git')
+    assert repository.get_file('filename').read() == 'content'

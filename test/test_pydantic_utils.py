@@ -177,6 +177,7 @@ class UrlTest(BaseModel):
 
     test_attribute: Url
 
+
 @pytest.mark.usefixtures('mock_urlopen')
 def test_url():
     """
