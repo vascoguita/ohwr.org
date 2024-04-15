@@ -177,13 +177,10 @@ class UrlTest(BaseModel):
 
     test_attribute: Url
 
-
-def test_url(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_url():
     """
     Test case for Url type.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -192,12 +189,10 @@ def test_url(mock_urlopen):
     assert test_object.test_attribute == HttpUrl('https://reachable.com')
 
 
-def test_url_parsing(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_url_parsing():
     """
     Test Url when the URL is not valid.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -211,12 +206,10 @@ def test_url_parsing(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_url_unreachable(mock_urlopen_unreachable):
+@pytest.mark.usefixtures('mock_urlopen_unreachable')
+def test_url_unreachable():
     """
     Test Url when the URL is not reachable.
-
-    Parameters:
-        mock_urlopen_unreachable: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -236,12 +229,10 @@ class UrlListTest(BaseModel):
     test_attribute: UrlList
 
 
-def test_url_list(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_url_list():
     """
     Test case for UrlList type.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -250,12 +241,10 @@ def test_url_list(mock_urlopen):
     assert test_object.test_attribute == [HttpUrl('https://reachable.com')]
 
 
-def test_url_list_type(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_url_list_type():
     """
     Test UrlList when the type is not a list.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -268,12 +257,10 @@ def test_url_list_type(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_url_list_empty(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_url_list_empty():
     """
     Test UrlList when the list is empty.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.

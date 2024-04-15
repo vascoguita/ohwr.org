@@ -368,12 +368,10 @@ def test_category_list_empty():
     ) in str(exc_info.value)
 
 
-def test_project_extra(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_extra():
     """
     Test Project when extra attributes are forbidden.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -390,12 +388,10 @@ def test_project_extra(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_project_repository(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_repository():
     """
     Test Project repository.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -407,12 +403,10 @@ def test_project_repository(mock_urlopen):
     assert project.repository == HttpUrl('https://example.com/project.git')
 
 
-def test_project_repository_parsing(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_repository_parsing():
     """
     Test Project repository when the URL is not valid.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -429,12 +423,10 @@ def test_project_repository_parsing(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_project_repository_unreachable(mock_urlopen_unreachable):
+@pytest.mark.usefixtures('mock_urlopen_unreachable')
+def test_project_repository_unreachable():
     """
     Test Project repository when the URL is not reachable.
-
-    Parameters:
-        mock_urlopen_unreachable: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -467,12 +459,10 @@ def test_project_repository_missing():
     ) in str(exc_info.value)
 
 
-def test_project_contact(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_contact():
     """
     Test Project contact.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -486,12 +476,10 @@ def test_project_contact(mock_urlopen):
     )
 
 
-def test_project_contact_parsing(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_contact_parsing():
     """
     Test Project when the contact is not valid.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -508,12 +496,10 @@ def test_project_contact_parsing(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_project_contact_missing(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_contact_missing():
     """
     Test Project when the contact is missing.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -527,12 +513,10 @@ def test_project_contact_missing(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_project_featured(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_featured():
     """
     Test Project featured.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -545,12 +529,10 @@ def test_project_featured(mock_urlopen):
     assert project.featured is True
 
 
-def test_project_featured_default(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_featured_default():
     """
     Test Project featured default value.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -562,12 +544,10 @@ def test_project_featured_default(mock_urlopen):
     assert project.featured is False
 
 
-def test_project_featured_type(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_featured_type():
     """
     Test Project featured when the type is not a bool.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -584,12 +564,10 @@ def test_project_featured_type(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_project_categories(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_categories():
     """
     Test Project categories.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -602,12 +580,10 @@ def test_project_categories(mock_urlopen):
     assert project.categories == ['Category 1']
 
 
-def test_project_categories_type(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_categories_type():
     """
     Test Project categories when the type is not a list.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -624,12 +600,10 @@ def test_project_categories_type(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_project_categories_empty(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_categories_empty():
     """
     Test Project categories when the list is empty.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -652,12 +626,10 @@ class ProjectListTest(BaseModel):
     test_attribute: ProjectList
 
 
-def test_project_list(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_list():
     """
     Test case for ProjectList type.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -672,12 +644,10 @@ def test_project_list(mock_urlopen):
     )]
 
 
-def test_project_list_type(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_project_list_type():
     """
     Test ProjectList when the type is not a list.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -709,12 +679,10 @@ def test_project_list_empty():
     ) in str(exc_info.value)
 
 
-def test_config_extra(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_extra():
     """
     Test Config when extra attributes are forbidden.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -737,12 +705,10 @@ def test_config_extra(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_sources(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_sources():
     """
     Test Config sources.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -760,12 +726,10 @@ def test_config_sources(mock_urlopen):
     assert config.sources == DirectoryPath('./src/hugo')
 
 
-def test_config_sources_type(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_sources_type():
     """
     Test Config sources when the type is not a DirectoryPath.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -787,12 +751,10 @@ def test_config_sources_type(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_sources_non_existent(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_sources_non_existent():
     """
     Test Config when the sources directory does not exist.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -815,12 +777,10 @@ def test_config_sources_non_existent(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_sources_missing(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_sources_missing():
     """
     Test Config when the sources are missing.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -842,12 +802,10 @@ def test_config_sources_missing(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_licenses(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_licenses():
     """
     Test Config licenses.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -867,12 +825,10 @@ def test_config_licenses(mock_urlopen):
     )
 
 
-def test_config_licenses_type(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_licenses_type():
     """
     Test Config licenses when the type is not a string.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -894,12 +850,10 @@ def test_config_licenses_type(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_licenses_non_existent(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_licenses_non_existent():
     """
     Test Config when the licenses file does not exist.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -921,12 +875,10 @@ def test_config_licenses_non_existent(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_licenses_missing(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_licenses_missing():
     """
     Test Config when the licenses are missing.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -948,12 +900,10 @@ def test_config_licenses_missing(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_projects(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_projects():
     """
     Test Config projects.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -974,12 +924,10 @@ def test_config_projects(mock_urlopen):
     )]
 
 
-def test_config_projects_type(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_projects_type():
     """
     Test Config projects when the type is not a list.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -996,12 +944,10 @@ def test_config_projects_type(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_projects_empty(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_projects_empty():
     """
     Test Config projects when the list is empty.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1018,12 +964,10 @@ def test_config_projects_empty(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_projects_missing(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_projects_missing():
     """
     Test Config when the projects are missing.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1040,12 +984,10 @@ def test_config_projects_missing(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_log_level(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_log_level():
     """
     Test Config log_level.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1064,12 +1006,10 @@ def test_config_log_level(mock_urlopen):
     assert config.log_level == 'DEBUG'
 
 
-def test_config_log_level_literal(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_log_level_literal():
     """
     Test Config log_level when the value is not one of the valid literals.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1093,12 +1033,10 @@ def test_config_log_level_literal(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_categories(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_categories():
     """
     Test Config categories.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1119,12 +1057,10 @@ def test_config_categories(mock_urlopen):
     ]
 
 
-def test_config_categories_type(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_categories_type():
     """
     Test Config categories when the type is not a list.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1147,12 +1083,10 @@ def test_config_categories_type(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_categories_empty(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_categories_empty():
     """
     Test Config categories when the list is empty.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1175,12 +1109,10 @@ def test_config_categories_empty(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_categories_match(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_categories_match():
     """
     Test Config categories match Project categories.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1200,12 +1132,10 @@ def test_config_categories_match(mock_urlopen):
     assert config.projects[0].categories[0] == config.categories[0].name
 
 
-def test_config_categories_no_match(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_categories_no_match():
     """
     Test Config categories when Project categories do not match.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
@@ -1232,12 +1162,10 @@ def test_config_categories_no_match(mock_urlopen):
     ) in str(exc_info.value)
 
 
-def test_config_from_yaml(mock_urlopen):
+@pytest.mark.usefixtures('mock_urlopen')
+def test_config_from_yaml():
     """
     Test Config from YAML.
-
-    Parameters:
-        mock_urlopen: A fixture providing mocked urlopen.
 
     Raises:
         AssertionError: If the test fails.
