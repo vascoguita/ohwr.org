@@ -22,7 +22,7 @@ from pydantic import (
     HttpUrl,
     ValidationError,
 )
-from pytest_utils import mock_urlopen, mock_urlopen_unreachable
+from pytest_utils import mock_urlopen, mock_urlopen_error
 
 
 def test_contact_extra():
@@ -423,7 +423,7 @@ def test_project_repository_parsing():
     ) in str(exc_info.value)
 
 
-@pytest.mark.usefixtures('mock_urlopen_unreachable')
+@pytest.mark.usefixtures('mock_urlopen_error')
 def test_project_repository_unreachable():
     """
     Test Project repository when the URL is not reachable.
@@ -985,55 +985,6 @@ def test_config_projects_missing():
 
 
 @pytest.mark.usefixtures('mock_urlopen')
-def test_config_log_level():
-    """
-    Test Config log_level.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    config = Config(
-        sources='./src/hugo',
-        licenses='./third_party/spdx/license-list-data/json/licenses.json',
-        log_level='DEBUG',
-        projects=[{
-            'repository': 'https://example.com/project.git',
-            'contact': {
-                'name': 'Contact Name', 'email': 'valid@email.com',
-            },
-        }],
-    )
-    assert config.log_level == 'DEBUG'
-
-
-@pytest.mark.usefixtures('mock_urlopen')
-def test_config_log_level_literal():
-    """
-    Test Config log_level when the value is not one of the valid literals.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    with pytest.raises(ValidationError) as exc_info:
-        Config(
-            sources='./src/hugo',
-            licenses='./third_party/spdx/license-list-data/json/licenses.json',
-            log_level='WRONG',
-            projects=[{
-                'repository': 'https://example.com/project.git',
-                'contact': {
-                    'name': 'Contact Name', 'email': 'valid@email.com',
-                },
-            }],
-        )
-    assert (
-        "log_level\n  Input should be 'DEBUG', 'INFO', 'WARNING', 'ERROR' " +
-        "or 'CRITICAL' [type=literal_error, input_value='WRONG', " +
-        'input_type=str]'
-    ) in str(exc_info.value)
-
-
-@pytest.mark.usefixtures('mock_urlopen')
 def test_config_categories():
     """
     Test Config categories.
@@ -1184,7 +1135,7 @@ projects:
     name: 'Contact Name'
     email: 'valid@email.com'
 """
-    config = Config.from_yaml(io.StringIO(config_yaml))
+    config = Config.from_yaml(config_yaml)
     assert config == Config(
         sources='./src/hugo',
         licenses='./third_party/spdx/license-list-data/json/licenses.json',

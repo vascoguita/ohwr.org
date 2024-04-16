@@ -13,7 +13,7 @@ from pydantic_utils import (
     Url,
     UrlList,
 )
-from pytest_utils import mock_urlopen, mock_urlopen_unreachable
+from pytest_utils import mock_urlopen, mock_urlopen_error
 
 
 class BaseModelForbidExtraTest(BaseModelForbidExtra):
@@ -207,7 +207,7 @@ def test_url_parsing():
     ) in str(exc_info.value)
 
 
-@pytest.mark.usefixtures('mock_urlopen_unreachable')
+@pytest.mark.usefixtures('mock_urlopen_error')
 def test_url_unreachable():
     """
     Test Url when the URL is not reachable.

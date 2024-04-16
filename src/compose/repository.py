@@ -80,7 +80,7 @@ class GitHubRepository(Repository):
             filename: The name of the file to retrieve.
 
         Returns:
-            Response: The response object containing the content of the file.
+            str: The file content.
 
         Raises:
             ConnectionError: If requesting the file content fails.
@@ -93,7 +93,7 @@ class GitHubRepository(Repository):
         )
         try:
             with request.urlopen(req, timeout=5) as response:  # noqa: S310
-                return response
+                return response.read().decode()
         except (URLError, ValueError) as url_error:
             raise ConnectionError(
                 "Failed to request '{0}':\n{1}".format(
@@ -116,7 +116,8 @@ class GitHubRepository(Repository):
         Raises:
             ValueError: If parsing the repository URL fails.
         """
-        parts = url.path.removeprefix('/').split('/', 1)
+        path = url.path.removeprefix('/')
+        parts = list(filter(None, path.split('/', 1)))
         try:
             owner = parts[0]
         except IndexError as owner_error:
@@ -157,7 +158,7 @@ class GenericRepository(Repository):
             filename: The name of the file to retrieve.
 
         Returns:
-            TextIO: The file object containing the content of the file.
+            str: The file content.
 
         Raises:
             RuntimeError: If cloning the repository fails.
@@ -176,7 +177,7 @@ class GenericRepository(Repository):
             )
         try:
             with open(os.path.join(tmpdir, filename)) as repository_file:
-                return repository_file
+                return repository_file.read()
         except FileNotFoundError as file_error:
             raise ValueError(
                 "File '{0}' not found in '{1}':\n{2}".format(

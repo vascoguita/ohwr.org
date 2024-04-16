@@ -12,28 +12,24 @@ from config import Config
 from pydantic import ValidationError
 from repository import Repository
 
-parser = argparse.ArgumentParser()
-parser.add_argument('config', type=argparse.FileType('r'))
-args = parser.parse_args()
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',  # noqa: WPS323
 )
 
+parser = argparse.ArgumentParser()
+parser.add_argument('config', type=argparse.FileType('r'))
+args = parser.parse_args()
+
 logging.info("Loading configuration from '{0}'...".format(args.config.name))
 
 try:
-    config = Config.from_yaml(args.config)
-except ValueError as config_error:
+    config = Config.from_yaml(args.config.read())
+except (ValidationError, ValueError) as config_error:
     logging.error(
         'Failed to load configuration:\n{0}'.format(config_error),
     )
     sys.exit(1)
-
-if config.log_level:
-    logging.info("Setting log level to '{0}'...".format(config.log_level))
-    logging.basicConfig(level=getattr(logging, config.log_level))
 
 for project in config.projects:
     logging.info(

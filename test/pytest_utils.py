@@ -5,6 +5,7 @@
 """Custom Pytest utilities."""
 
 
+import subprocess  # noqa: S404
 from http import HTTPStatus
 from typing import Optional
 from urllib.error import URLError
@@ -13,8 +14,8 @@ import pytest
 from pydantic import BaseModel
 
 
-class OpenMock(BaseModel):
-    """A mock object for handling urllib.request.urlopen and builtins.open."""
+class OpenURLMock(BaseModel):
+    """Mock class for urllib.request.urlopen."""
 
     status: Optional[int] = HTTPStatus.OK
 
@@ -39,12 +40,12 @@ class OpenMock(BaseModel):
 
     def read(self):
         """
-        Read method to retrieve content.
+        Return mocked content as bytes.
 
         Returns:
-            str: The content of the mock object.
+            bytes: The mocked content encoded as bytes.
         """
-        return 'content'
+        return 'mock_content'.encode()
 
 
 @pytest.fixture
@@ -55,13 +56,13 @@ def mock_urlopen(mocker):
     Parameters:
         mocker: A pytest-mock mocker object.
     """
-    mocker.patch('urllib.request.urlopen', return_value=OpenMock())
+    mocker.patch('urllib.request.urlopen', return_value=OpenURLMock())
 
 
 @pytest.fixture
-def mock_urlopen_unreachable(mocker):
+def mock_urlopen_error(mocker):
     """
-    Fixture for mocking unreachable urllib.request.urlopen.
+    Fixture for mocking a urllib.request.urlopen failure.
 
     Parameters:
         mocker: A pytest-mock mocker object.
@@ -84,6 +85,22 @@ def mock_check_output(mocker):
 
 
 @pytest.fixture
+def mock_check_output_error(mocker):
+    """
+    Fixture for mocking a subprocess.check_output failure.
+
+    Parameters:
+        mocker: A pytest-mock mocker object.
+    """
+    mocker.patch(
+        'subprocess.check_output',
+        side_effect=subprocess.CalledProcessError(
+            1, 'Mocked CalledProcessError',
+        ),
+    )
+
+
+@pytest.fixture
 def mock_temporary_directory(mocker):
     """
     Fixture for mocking tempfile.mkdtemp.
@@ -91,7 +108,7 @@ def mock_temporary_directory(mocker):
     Parameters:
         mocker: A pytest-mock mocker object.
     """
-    mocker.patch('tempfile.mkdtemp', return_value='dirname')
+    mocker.patch('tempfile.mkdtemp', return_value='mock_dirname')
 
 
 @pytest.fixture
@@ -102,4 +119,18 @@ def mock_open(mocker):
     Parameters:
         mocker: A pytest-mock mocker object.
     """
-    mocker.patch('builtins.open', return_value=OpenMock())
+    mocker.patch('builtins.open', mocker.mock_open(read_data='mock_content'))
+
+
+@pytest.fixture
+def mock_open_error(mocker):
+    """
+    Fixture for mocking a builtins.open failure.
+
+    Parameters:
+        mocker: A pytest-mock mocker object.
+    """
+    mocker.patch(
+        'builtins.open',
+        side_effect=FileNotFoundError('Mocked FileNotFoundError'),
+    )

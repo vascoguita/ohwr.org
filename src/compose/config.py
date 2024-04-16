@@ -5,7 +5,7 @@
 """Load configuration."""
 
 
-from typing import Annotated, Literal, Optional, TextIO
+from typing import Annotated, Optional
 
 import yaml
 from pydantic import (
@@ -15,6 +15,7 @@ from pydantic import (
     FilePath,
     ValidationError,
     model_validator,
+    validate_call,
 )
 from pydantic_utils import (
     AnnotatedStr,
@@ -58,9 +59,6 @@ class Config(BaseModelForbidExtra):
 
     sources: DirectoryPath
     licenses: FilePath
-    log_level: Optional[
-        Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-    ] = None
     categories: Optional[CategoryList] = None
     projects: ProjectList
 
@@ -92,12 +90,13 @@ class Config(BaseModelForbidExtra):
         return self
 
     @classmethod
-    def from_yaml(cls, config_yaml: TextIO):
+    @validate_call
+    def from_yaml(cls, config_yaml: AnnotatedStr):
         """
-        Load the configuration from a YAML file.
+        Load the configuration from YAML.
 
         Parameters:
-            config_yaml: YAML file.
+            config_yaml: YAML string.
 
         Returns:
             Config: The configuration object with validated category names.
