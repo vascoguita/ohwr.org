@@ -41,28 +41,28 @@ class Manifest(BaseModelForbidExtra):
 
     @classmethod
     @validate_call
-    def from_yaml(cls, config_yaml: AnnotatedStr):
+    def from_yaml(cls, manifest_yaml: AnnotatedStr):
         """
-        Load the configuration from YAML.
+        Load the manifest from YAML.
 
         Parameters:
-            config_yaml: configuration YAML string.
+            manifest_yaml: manifest YAML string.
 
         Returns:
-            Config: The configuration object with validated category names.
+            Manifest: The manifest object with validated category names.
 
         Raises:
-            ValueError: If loading the configuration fails.
+            ValueError: If loading the manifest fails.
         """
         try:
-            config = yaml.safe_load(config_yaml)
+            manifest = yaml.safe_load(manifest_yaml)
         except yaml.YAMLError as yaml_error:
             raise ValueError(
-                'Failed to load YAML configuration:\n{0}'.format(yaml_error),
+                'Failed to load YAML manifest:\n{0}'.format(yaml_error),
             )
         try:
-            return cls(**config)
-        except (ValidationError, TypeError) as config_error:
+            return cls(**manifest)
+        except (ValidationError, TypeError) as manifest_error:
             raise ValueError(
-                'YAML configuration is not valid:\n{0}'.format(config_error),
+                'YAML manifest is not valid:\n{0}'.format(manifest_error),
             )
