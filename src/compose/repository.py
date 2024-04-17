@@ -72,7 +72,7 @@ class GitHubRepository(Repository):
     repo: AnnotatedStr
 
     @validate_call
-    def get_file(self, filename: AnnotatedStr):
+    def get_file(self, filename: AnnotatedStr) -> str:
         """
         Get the content of a file from the repository.
 
@@ -150,7 +150,7 @@ class GenericRepository(Repository):
     url: HttpUrl
 
     @validate_call
-    def get_file(self, filename: AnnotatedStr):
+    def get_file(self, filename: AnnotatedStr) -> str:
         """
         Get the content of a file from the repository.
 

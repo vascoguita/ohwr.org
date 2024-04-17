@@ -9,8 +9,10 @@ import logging
 import sys
 
 from config import Config
+from manifest import Manifest
 from pydantic import ValidationError
 from repository import Repository
+from spdx import Spdx
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,12 +24,20 @@ parser.add_argument('config', type=argparse.FileType('r'))
 args = parser.parse_args()
 
 logging.info("Loading configuration from '{0}'...".format(args.config.name))
-
 try:
     config = Config.from_yaml(args.config.read())
 except (ValidationError, ValueError) as config_error:
     logging.error(
         'Failed to load configuration:\n{0}'.format(config_error),
+    )
+    sys.exit(1)
+
+logging.info("Loading SPDX license list from '{0}'...".format(config.licenses))
+try:
+    Spdx.from_file(config.licenses)
+except (ValidationError, ValueError) as license_error:
+    logging.error(
+        'Failed to load SPDX license list:\n{0}'.format(license_error),
     )
     sys.exit(1)
 
@@ -54,3 +64,4 @@ for project in config.projects:
                 project.repository, manifest_error,
             ),
         )
+    Manifest.from_yaml(manifest_yaml)

@@ -96,7 +96,7 @@ class Config(BaseModelForbidExtra):
         Load the configuration from YAML.
 
         Parameters:
-            config_yaml: YAML string.
+            config_yaml: configuration YAML string.
 
         Returns:
             Config: The configuration object with validated category names.
