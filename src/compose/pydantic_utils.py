@@ -48,7 +48,7 @@ def is_reachable(url: HttpUrl) -> HttpUrl:
         with request.urlopen(req, timeout=5) as res:  # noqa: S310
             if res.status != HTTPStatus.OK:
                 raise ValueError("Status code: '{0}'.".format(res.status))
-    except (URLError, ValueError) as error:
+    except (URLError, ValueError, TimeoutError) as error:
         error_fmt = "Failed to access URL: '{0}'."
         raise ValueError(error_fmt.format(url)) from error
     return url

@@ -7,6 +7,7 @@
 import os
 import subprocess  # noqa: S404
 from abc import ABC, abstractmethod
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib import request
 from urllib.error import URLError
@@ -19,12 +20,12 @@ class Repository(BaseModelForbidExtra, ABC):
     """Abstract base class representing a repository."""
 
     @abstractmethod
-    def get_file(self, filename: str):
+    def read(self, filepath: Path):
         """
-        Abstract method to get a file from the repository.
+        Abstract method to read a file from the repository.
 
         Args:
-            filename: The name of the file to retrieve.
+            filepath: The path of the file to retrieve.
 
         Raises:
             NotImplementedError: If not implemented in a subclass.
@@ -72,29 +73,29 @@ class GitHubRepository(Repository):
     repo: AnnotatedStr
 
     @validate_call
-    def get_file(self, filename: AnnotatedStr) -> str:
+    def read(self, filepath: Path) -> str:
         """
-        Get the content of a file from the repository.
+        Read a file from the repository.
 
         Parameters:
-            filename: The name of the file to retrieve.
+            filepath: The path of the file to read.
 
         Returns:
             str: The file content.
 
         Raises:
-            ConnectionError: If requesting the file content fails.
+            ConnectionError: If reading the file fails.
         """
         req = request.Request(
             'https://api.github.com/repos/{0}/{1}/contents/{2}'.format(
-                self.owner, self.repo, filename,
+                self.owner, self.repo, filepath,
             ),
             headers={'Accept': 'application/vnd.github.v3.raw'},
         )
         try:
             with request.urlopen(req, timeout=5) as response:  # noqa: S310
                 return response.read().decode()
-        except (URLError, ValueError) as url_error:
+        except (URLError, ValueError, TimeoutError) as url_error:
             raise ConnectionError(
                 "Failed to request '{0}':\n{1}".format(
                     req.full_url, url_error,
@@ -150,12 +151,12 @@ class GenericRepository(Repository):
     url: HttpUrl
 
     @validate_call
-    def get_file(self, filename: AnnotatedStr) -> str:
+    def read(self, filepath: Path) -> str:
         """
-        Get the content of a file from the repository.
+        Read a file from the repository.
 
         Args:
-            filename: The name of the file to retrieve.
+            filepath: The path of the file to read.
 
         Returns:
             str: The file content.
@@ -176,11 +177,11 @@ class GenericRepository(Repository):
                 "Failed to clone '{0}':\n{1}".format(self.url, clone_error),
             )
         try:
-            with open(os.path.join(tmpdir, filename)) as repository_file:
+            with open(os.path.join(tmpdir, filepath)) as repository_file:
                 return repository_file.read()
         except FileNotFoundError as file_error:
             raise ValueError(
                 "File '{0}' not found in '{1}':\n{2}".format(
-                    filename, self.url, file_error,
+                    filepath, self.url, file_error,
                 ),
             )

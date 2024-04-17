@@ -11,7 +11,6 @@ import sys
 from config import Config
 from manifest import Manifest
 from pydantic import ValidationError
-from repository import Repository
 from spdx import Spdx
 
 logging.basicConfig(
@@ -42,26 +41,12 @@ except (ValidationError, ValueError) as license_error:
     sys.exit(1)
 
 for project in config.projects:
-    logging.info(
-        "Loading project manifest from '{0}'...".format(project.repository),
-    )
+    logging.info("Loading manifest from '{0}'...".format(project.repository))
     try:
-        repository = Repository.create(project.repository)
-    except (ValidationError, ValueError) as repository_error:
+        manifest = Manifest.from_repository(project.repository)
+    except (ValidationError, ValueError) as manifest_error:
         logging.error(
-            "Failed to parse project repository '{0}':\n{1}".format(
-                project.repository, repository_error,
-            ),
-        )
-        continue
-    try:
-        manifest_yaml = repository.get_file('.ohwr.yaml')
-    except (
-        ValidationError, ValueError, ConnectionError, RuntimeError,
-    ) as manifest_error:
-        logging.error(
-            "Failed to fetch project manifest from '{0}':\n{1}".format(
+            "Failed to load manifest '{0}':\n{1}".format(
                 project.repository, manifest_error,
             ),
         )
-    Manifest.from_yaml(manifest_yaml)

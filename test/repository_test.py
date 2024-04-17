@@ -74,16 +74,16 @@ def test_generic_repository_url_missing():
     ) in str(exc_info.value)
 
 
-def test_generic_repository_get_file_extra():
+def test_generic_repository_read_extra():
     """
-    Test GenericRepository get_file when extra arguments are forbidden.
+    Test GenericRepository read when extra arguments are forbidden.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        GenericRepository(url='https://example.com/project.git').get_file(
-            filename='filename', extra=1,
+        GenericRepository(url='https://example.com/project.git').read(
+            filepath='filepath', extra=1,
         )
     assert (
         'extra\n  Unexpected keyword argument ' +
@@ -91,68 +91,34 @@ def test_generic_repository_get_file_extra():
     ) in str(exc_info.value)
 
 
-def test_generic_repository_get_file_type():
+def test_generic_repository_read_type():
     """
-    Test GenericRepository get_file when the filename type is not a string.
+    Test GenericRepository read when the filepath type is not a string.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        GenericRepository(url='https://example.com/project.git').get_file(
-            filename=1234.56,
+        GenericRepository(url='https://example.com/project.git').read(
+            filepath=1234.56,
         )
     assert (
-        'filename\n  Input should be a valid string [type=string_type, ' +
+        'filepath\n  Input is not a valid path [type=path_type, ' +
         'input_value=1234.56, input_type=float]'
     ) in str(exc_info.value)
 
 
-def test_generic_repository_get_file_empty():
+def test_generic_repository_read_missing():
     """
-    Test GenericRepository get_file when the filename is empty.
+    Test GenericRepository read when the filepath is missing.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        GenericRepository(url='https://example.com/project.git').get_file(
-            filename='',
-        )
+        GenericRepository(url='https://example.com/project.git').read()
     assert (
-        'filename\n  String should have at least 1 character ' +
-        "[type=string_too_short, input_value='', input_type=str]\n"
-    ) in str(exc_info.value)
-
-
-def test_generic_repository_get_file_blank():
-    """
-    Test GenericRepository get_file when the filename is blank.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    with pytest.raises(ValidationError) as exc_info:
-        GenericRepository(url='https://example.com/project.git').get_file(
-            filename='   ',
-        )
-    assert (
-        'filename\n  String should have at least 1 character ' +
-        "[type=string_too_short, input_value='   ', input_type=str]\n"
-    ) in str(exc_info.value)
-
-
-def test_generic_repository_get_file_missing():
-    """
-    Test GenericRepository get_file when the filename is missing.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    with pytest.raises(ValidationError) as exc_info:
-        GenericRepository(url='https://example.com/project.git').get_file()
-    assert (
-        'filename\n  Missing required argument [type=missing_argument, ' +
+        'filepath\n  Missing required argument [type=missing_argument, ' +
         "input_value=ArgsKwargs((GenericReposi...le.com/project.git')),)), " +
         'input_type=ArgsKwargs]'
     ) in str(exc_info.value)
@@ -161,28 +127,28 @@ def test_generic_repository_get_file_missing():
 @pytest.mark.usefixtures(
     'mock_temporary_directory', 'mock_check_output', 'mock_open',
 )
-def test_generic_repository_get_file():
+def test_generic_repository_read():
     """
-    Test GenericRepository get_file.
+    Test GenericRepository read.
 
     Raises:
         AssertionError: If the test fails.
     """
     repository = GenericRepository(url='https://example.com/project.git')
-    assert repository.get_file('filename') == 'mock_content'
+    assert repository.read('filepath') == 'mock_content'
 
 
 @pytest.mark.usefixtures('mock_temporary_directory', 'mock_check_output_error')
-def test_generic_repository_get_file_clone_error():
+def test_generic_repository_read_clone_error():
     """
-    Test GenericRepository get_file when the clone fails.
+    Test GenericRepository read when the clone fails.
 
     Raises:
         AssertionError: If the test fails.
     """
     repository = GenericRepository(url='https://example.com/project.git')
     with pytest.raises(RuntimeError) as exc_info:
-        repository.get_file('filename')
+        repository.read('filepath')
     assert (
         "Failed to clone 'https://example.com/project.git':\n" +
         "Command 'Mocked CalledProcessError' returned non-zero exit status 1."
@@ -192,18 +158,18 @@ def test_generic_repository_get_file_clone_error():
 @pytest.mark.usefixtures(
     'mock_temporary_directory', 'mock_check_output', 'mock_open_error',
 )
-def test_generic_repository_get_file_open_error():
+def test_generic_repository_read_open_error():
     """
-    Test GenericRepository get_file when the open fails.
+    Test GenericRepository read when the open fails.
 
     Raises:
         AssertionError: If the test fails.
     """
     repository = GenericRepository(url='https://example.com/project.git')
     with pytest.raises(ValueError) as exc_info:
-        repository.get_file('filename')
+        repository.read('filepath')
     assert (
-        "'filename' not found in 'https://example.com/project.git':\n" +
+        "'filepath' not found in 'https://example.com/project.git':\n" +
         'Mocked FileNotFoundError'
     ) in str(exc_info.value)
 
@@ -365,16 +331,16 @@ def test_github_repository_repo_missing():
     ) in str(exc_info.value)
 
 
-def test_github_repository_get_file_extra():
+def test_github_repository_read_extra():
     """
-    Test GitHubRepository get_file when extra arguments are forbidden.
+    Test GitHubRepository read when extra arguments are forbidden.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        GitHubRepository(owner='owner', repo='repo').get_file(
-            filename='filename', extra=1,
+        GitHubRepository(owner='owner', repo='repo').read(
+            filepath='filepath', extra=1,
         )
     assert (
         'extra\n  Unexpected keyword argument ' +
@@ -382,93 +348,63 @@ def test_github_repository_get_file_extra():
     ) in str(exc_info.value)
 
 
-def test_github_repository_get_file_type():
+def test_github_repository_read_type():
     """
-    Test GitHubRepository get_file when the filename type is not a string.
+    Test GitHubRepository read when the filepath type is not a string.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        GitHubRepository(owner='owner', repo='repo').get_file(filename=1234.56)
+        GitHubRepository(owner='owner', repo='repo').read(filepath=1234.56)
     assert (
-        'filename\n  Input should be a valid string [type=string_type, ' +
+        'filepath\n  Input is not a valid path [type=path_type, ' +
         'input_value=1234.56, input_type=float]'
     ) in str(exc_info.value)
 
 
-def test_github_repository_get_file_empty():
+def test_github_repository_read_missing():
     """
-    Test GitHubRepository get_file when the filename is empty.
+    Test GitHubRepository read when the filepath is missing.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        GitHubRepository(owner='owner', repo='repo').get_file(filename='')
+        GitHubRepository(owner='owner', repo='repo').read()
     assert (
-        'filename\n  String should have at least 1 character ' +
-        "[type=string_too_short, input_value='', input_type=str]\n"
-    ) in str(exc_info.value)
-
-
-def test_github_repository_get_file_blank():
-    """
-    Test GitHubRepository get_file when the filename is blank.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    with pytest.raises(ValidationError) as exc_info:
-        GitHubRepository(owner='owner', repo='repo').get_file(filename='   ')
-    assert (
-        'filename\n  String should have at least 1 character ' +
-        "[type=string_too_short, input_value='   ', input_type=str]\n"
-    ) in str(exc_info.value)
-
-
-def test_github_repository_get_file_missing():
-    """
-    Test GitHubRepository get_file when the filename is missing.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    with pytest.raises(ValidationError) as exc_info:
-        GitHubRepository(owner='owner', repo='repo').get_file()
-    assert (
-        'filename\n  Missing required argument [type=missing_argument, ' +
+        'filepath\n  Missing required argument [type=missing_argument, ' +
         "input_value=ArgsKwargs((GitHubReposit...'owner', repo='repo'),)), " +
         'input_type=ArgsKwargs]'
     ) in str(exc_info.value)
 
 
 @pytest.mark.usefixtures('mock_urlopen')
-def test_github_repository_get_file():
+def test_github_repository_read():
     """
-    Test GitHubRepository get_file.
+    Test GitHubRepository read.
 
     Raises:
         AssertionError: If the test fails.
     """
     repository = GitHubRepository(owner='owner', repo='repo')
-    assert repository.get_file('filename') == 'mock_content'
+    assert repository.read('filepath') == 'mock_content'
 
 
 @pytest.mark.usefixtures('mock_urlopen_error')
-def test_github_repository_get_file_unreachable():
+def test_github_repository_read_unreachable():
     """
-    Test GitHubRepository get_file when the URL is not reachable.
+    Test GitHubRepository read when the URL is not reachable.
 
     Raises:
         AssertionError: If the test fails.
     """
     repository = GitHubRepository(owner='owner', repo='repo')
     with pytest.raises(ConnectionError) as exc_info:
-        repository.get_file('filename')
+        repository.read('filepath')
     assert (
         'Failed to request ' +
-        "'https://api.github.com/repos/owner/repo/contents/filename':\n" +
+        "'https://api.github.com/repos/owner/repo/contents/filepath':\n" +
         '<urlopen error Mocked URLError>'
     ) in str(exc_info.value)
 
