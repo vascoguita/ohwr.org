@@ -10,6 +10,7 @@ import sys
 
 from config import Config
 from manifest import Manifest
+from project import Project
 from pydantic import ValidationError
 from spdx import Spdx
 
@@ -50,3 +51,9 @@ for project in config.projects:
                 project.repository, manifest_error,
             ),
         )
+    Project(
+        title=manifest.name,
+        images=manifest.images,
+        featured=project.featured,
+        categories=project.categories,
+    ).dump()
