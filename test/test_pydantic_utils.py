@@ -10,8 +10,8 @@ from pydantic_utils import (
     AnnotatedStr,
     AnnotatedStrList,
     BaseModelForbidExtra,
-    Url,
-    UrlList,
+    ReachableUrl,
+    ReachableUrlList,
 )
 from pytest_utils import mock_urlopen, mock_urlopen_error
 
@@ -172,34 +172,34 @@ def test_annotated_str_list_empty():
     ) in str(exc_info.value)
 
 
-class UrlTest(BaseModel):
-    """Test class for Url."""
+class ReachableUrlTest(BaseModel):
+    """Test class for ReachableUrl."""
 
-    test_attribute: Url
+    test_attribute: ReachableUrl
 
 
 @pytest.mark.usefixtures('mock_urlopen')
 def test_url():
     """
-    Test case for Url type.
+    Test case for ReachableUrl type.
 
     Raises:
         AssertionError: If the test fails.
     """
-    test_object = UrlTest(test_attribute='https://reachable.com')
+    test_object = ReachableUrlTest(test_attribute='https://reachable.com')
     assert test_object.test_attribute == HttpUrl('https://reachable.com')
 
 
 @pytest.mark.usefixtures('mock_urlopen')
 def test_url_parsing():
     """
-    Test Url when the URL is not valid.
+    Test ReachableUrl when the URL is not valid.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        UrlTest(test_attribute='invalid-url')
+        ReachableUrlTest(test_attribute='invalid-url')
     assert (
         'test_attribute\n  Input should be a valid URL, relative URL without' +
         " a base [type=url_parsing, input_value='invalid-url', " +
@@ -210,13 +210,13 @@ def test_url_parsing():
 @pytest.mark.usefixtures('mock_urlopen_error')
 def test_url_unreachable():
     """
-    Test Url when the URL is not reachable.
+    Test ReachableUrl when the URL is not reachable.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        UrlTest(test_attribute='https://unreachable.com')
+        ReachableUrlTest(test_attribute='https://unreachable.com')
     assert (
         'test_attribute\n  Value error, Failed to access URL: ' +
         "'https://unreachable.com/'. [type=value_error, " +
@@ -224,34 +224,36 @@ def test_url_unreachable():
     ) in str(exc_info.value)
 
 
-class UrlListTest(BaseModel):
-    """Test class for UrlList."""
+class ReachableUrlListTest(BaseModel):
+    """Test class for ReachableUrlList."""
 
-    test_attribute: UrlList
+    test_attribute: ReachableUrlList
 
 
 @pytest.mark.usefixtures('mock_urlopen')
 def test_url_list():
     """
-    Test case for UrlList type.
+    Test case for ReachableUrlList type.
 
     Raises:
         AssertionError: If the test fails.
     """
-    test_object = UrlListTest(test_attribute=['https://reachable.com'])
+    test_object = ReachableUrlListTest(
+        test_attribute=['https://reachable.com'],
+    )
     assert test_object.test_attribute == [HttpUrl('https://reachable.com')]
 
 
 @pytest.mark.usefixtures('mock_urlopen')
 def test_url_list_type():
     """
-    Test UrlList when the type is not a list.
+    Test ReachableUrlList when the type is not a list.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        UrlListTest(test_attribute='abcd')
+        ReachableUrlListTest(test_attribute='abcd')
     assert (
         'test_attribute\n  Input should be a valid list ' +
         "[type=list_type, input_value='abcd', input_type=str]\n"
@@ -261,13 +263,13 @@ def test_url_list_type():
 @pytest.mark.usefixtures('mock_urlopen')
 def test_url_list_empty():
     """
-    Test UrlList when the list is empty.
+    Test ReachableUrlList when the list is empty.
 
     Raises:
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        UrlListTest(test_attribute=[])
+        ReachableUrlListTest(test_attribute=[])
     assert (
         'test_attribute\n  List should have at least 1 item after ' +
         'validation, not 0 [type=too_short, input_value=[], input_type=list]\n'

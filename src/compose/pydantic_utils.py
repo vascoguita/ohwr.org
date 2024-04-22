@@ -15,6 +15,7 @@ from pydantic import (
     BaseModel,
     Field,
     HttpUrl,
+    PlainSerializer,
     StringConstraints,
 )
 
@@ -54,5 +55,22 @@ def is_reachable(url: HttpUrl) -> HttpUrl:
     return url
 
 
-Url = Annotated[HttpUrl, AfterValidator(is_reachable)]
-UrlList = Annotated[list[Url], Field(min_length=1)]
+ReachableUrl = Annotated[HttpUrl, AfterValidator(is_reachable)]
+ReachableUrlList = Annotated[list[ReachableUrl], Field(min_length=1)]
+
+
+def serialize(url: HttpUrl) -> str:
+    """
+    Serialize an HttpUrl into a string.
+
+    Parameters:
+        url: HTTP URL.
+
+    Returns:
+        URL string.
+    """
+    return str(url)
+
+
+SerializableUrl = Annotated[HttpUrl, PlainSerializer(serialize)]
+SerializableUrlList = Annotated[list[SerializableUrl], Field(min_length=1)]

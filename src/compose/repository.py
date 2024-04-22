@@ -9,15 +9,24 @@ import subprocess  # noqa: S404
 from abc import ABC, abstractmethod
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Annotated
 from urllib import request
 from urllib.error import URLError
 
-from pydantic import HttpUrl, ValidationError, validate_call
-from pydantic_utils import AnnotatedStr, BaseModelForbidExtra
+from pydantic import (
+    AfterValidator,
+    HttpUrl,
+    ValidationError,
+    computed_field,
+    validate_call,
+)
+from pydantic_utils import BaseModelForbidExtra
 
 
 class Repository(BaseModelForbidExtra, ABC):
     """Abstract base class representing a repository."""
+
+    url: HttpUrl
 
     @abstractmethod
     def read(self, filepath: Path):
@@ -48,7 +57,7 @@ class Repository(BaseModelForbidExtra, ABC):
         """
         if url.host == 'github.com':
             try:
-                return GitHubRepository.from_url(url)
+                return GitHubRepository(url=url)
             except (ValidationError, ValueError) as github_error:
                 raise ValueError(
                     "GitHub repository '{0}' is not valid:\n{1}".format(
@@ -65,12 +74,43 @@ class Repository(BaseModelForbidExtra, ABC):
                     ),
                 )
 
+    @computed_field
+    def owner(self) -> str:
+        path = self.url.path.removeprefix('/')
+        parts = list(filter(None, path.split('/', 1)))
+        try:
+            return parts[0]
+        except IndexError as owner_error:
+            raise ValueError(
+                "Failed to parse owner from '{0}':\n{1}".format(
+                    self.url, owner_error,
+                ),
+            )
+
+    @computed_field
+    def project(self) -> str:
+        path = self.url.path.removeprefix('/')
+        parts = list(filter(None, path.split('/', 1)))
+        try:
+            return parts[1].removesuffix('.git')
+        except IndexError as project_error:
+            raise ValueError(
+                "Failed to parse project name from '{0}':\n{1}".format(
+                    self.url, project_error,
+                ),
+            )
+
+    def __split(self) -> list[str]:
+        path = self.url.path.removeprefix('/')
+        return list(filter(None, path.split('/', 1)))
+
+
+
+AnnotatedRepository = Annotated[HttpUrl, AfterValidator(Repository.create)]
+
 
 class GitHubRepository(Repository):
     """Represents a GitHub repository."""
-
-    owner: AnnotatedStr
-    repo: AnnotatedStr
 
     @validate_call
     def read(self, filepath: Path) -> str:
@@ -88,7 +128,7 @@ class GitHubRepository(Repository):
         """
         req = request.Request(
             'https://api.github.com/repos/{0}/{1}/contents/{2}'.format(
-                self.owner, self.repo, filepath,
+                self.owner, self.project, filepath,
             ),
             headers={'Accept': 'application/vnd.github.v3.raw'},
         )
@@ -102,53 +142,9 @@ class GitHubRepository(Repository):
                 ),
             )
 
-    @classmethod
-    @validate_call
-    def from_url(cls, url: HttpUrl):
-        """
-        Create a GitHubRepository object from a given URL.
-
-        Args:
-            url: The URL of the GitHub repository.
-
-        Returns:
-            GitHubRepository: GitHubRepository object.
-
-        Raises:
-            ValueError: If parsing the repository URL fails.
-        """
-        path = url.path.removeprefix('/')
-        parts = list(filter(None, path.split('/', 1)))
-        try:
-            owner = parts[0]
-        except IndexError as owner_error:
-            raise ValueError(
-                "Failed to parse repository owner from '{0}':\n{1}".format(
-                    url, owner_error,
-                ),
-            )
-        try:
-            repo = parts[1].removesuffix('.git')
-        except IndexError as repo_error:
-            raise ValueError(
-                "Failed to parse repository name from '{0}':\n{1}".format(
-                    url, repo_error,
-                ),
-            )
-        try:
-            return cls(owner=owner, repo=repo)
-        except ValidationError as github_error:
-            raise ValueError(
-                "GitHub repository '{0}' is not valid:\n{1}".format(
-                    url, github_error,
-                ),
-            )
-
 
 class GenericRepository(Repository):
     """Represents a generic repository."""
-
-    url: HttpUrl
 
     @validate_call
     def read(self, filepath: Path) -> str:

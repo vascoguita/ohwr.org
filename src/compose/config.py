@@ -17,12 +17,8 @@ from pydantic import (
     model_validator,
     validate_call,
 )
-from pydantic_utils import (
-    AnnotatedStr,
-    AnnotatedStrList,
-    BaseModelForbidExtra,
-    Url,
-)
+from pydantic_utils import AnnotatedStr, AnnotatedStrList, BaseModelForbidExtra
+from repository import AnnotatedRepository
 
 
 class Contact(BaseModelForbidExtra):
@@ -45,7 +41,7 @@ CategoryList = Annotated[list[Category], Field(min_length=1)]
 class Project(BaseModelForbidExtra):
     """Project configuration schema."""
 
-    repository: Url
+    repository: AnnotatedRepository
     contact: Contact
     featured: Optional[bool] = False
     categories: Optional[AnnotatedStrList] = None
