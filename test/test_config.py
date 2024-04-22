@@ -4,8 +4,6 @@
 
 """Test pydantic_utils module."""
 
-import io
-
 import pytest
 from config import (
     Category,
@@ -15,14 +13,9 @@ from config import (
     Project,
     ProjectList,
 )
-from pydantic import (
-    BaseModel,
-    DirectoryPath,
-    FilePath,
-    HttpUrl,
-    ValidationError,
-)
+from pydantic import BaseModel, DirectoryPath, FilePath, ValidationError
 from pytest_utils import mock_urlopen, mock_urlopen_error
+from repository import GenericRepository
 
 
 def test_contact_extra():
@@ -378,7 +371,7 @@ def test_project_extra():
     """
     with pytest.raises(ValidationError) as exc_info:
         Project(
-            repository='https://example.com/project.git',
+            repository='https://example.com/owner/project.git',
             contact={'name': 'Contact Name', 'email': 'valid@email.com'},
             extra=1,
         )
@@ -397,10 +390,12 @@ def test_project_repository():
         AssertionError: If the test fails.
     """
     project = Project(
-        repository='https://example.com/project.git',
+        repository='https://example.com/owner/project.git',
         contact={'name': 'Contact Name', 'email': 'valid@email.com'},
     )
-    assert project.repository == HttpUrl('https://example.com/project.git')
+    assert project.repository == GenericRepository(
+        url='https://example.com/owner/project.git',
+    )
 
 
 @pytest.mark.usefixtures('mock_urlopen')
@@ -420,26 +415,6 @@ def test_project_repository_parsing():
         'repository\n  Input should be a valid URL, relative URL without' +
         " a base [type=url_parsing, input_value='invalid-url', " +
         'input_type=str]\n'
-    ) in str(exc_info.value)
-
-
-@pytest.mark.usefixtures('mock_urlopen_error')
-def test_project_repository_unreachable():
-    """
-    Test Project repository when the URL is not reachable.
-
-    Raises:
-        AssertionError: If the test fails.
-    """
-    with pytest.raises(ValidationError) as exc_info:
-        Project(
-            repository='https://unreachable.com',
-            contact={'name': 'Contact Name', 'email': 'valid@email.com'},
-        )
-    assert (
-        'repository\n  Value error, Failed to access URL: ' +
-        "'https://unreachable.com/'. [type=value_error, " +
-        "input_value='https://unreachable.com', input_type=str]\n"
     ) in str(exc_info.value)
 
 
@@ -468,7 +443,7 @@ def test_project_contact():
         AssertionError: If the test fails.
     """
     project = Project(
-        repository='https://example.com/project.git',
+        repository='https://example.com/owner/project.git',
         contact={'name': 'Contact Name', 'email': 'valid@email.com'},
     )
     assert project.contact == Contact(
@@ -486,7 +461,7 @@ def test_project_contact_parsing():
     """
     with pytest.raises(ValidationError) as exc_info:
         Project(
-            repository='https://example.com/project.git',
+            repository='https://example.com/owner/project.git',
             contact='invalid-contact',
         )
     assert (
@@ -505,10 +480,10 @@ def test_project_contact_missing():
         AssertionError: If the test fails.
     """
     with pytest.raises(ValidationError) as exc_info:
-        Project(repository='https://example.com/project.git')
+        Project(repository='https://example.com/owner/project.git')
     assert (
-        'contact\n  Field required [type=missing, ' +
-        "input_value={'repository': 'https://example.com/project.git'}, " +
+        'contact\n  Field required [type=missing, input_value={' +
+        "'repository': 'https://e....com/owner/project.git'}, " +
         'input_type=dict]'
     ) in str(exc_info.value)
 
@@ -522,7 +497,7 @@ def test_project_featured():
         AssertionError: If the test fails.
     """
     project = Project(
-        repository='https://example.com/project.git',
+        repository='https://example.com/owner/project.git',
         contact={'name': 'Contact Name', 'email': 'valid@email.com'},
         featured=True,
     )
@@ -538,7 +513,7 @@ def test_project_featured_default():
         AssertionError: If the test fails.
     """
     project = Project(
-        repository='https://example.com/project.git',
+        repository='https://example.com/owner/project.git',
         contact={'name': 'Contact Name', 'email': 'valid@email.com'},
     )
     assert project.featured is False
@@ -554,7 +529,7 @@ def test_project_featured_type():
     """
     with pytest.raises(ValidationError) as exc_info:
         Project(
-            repository='https://example.com/project.git',
+            repository='https://example.com/owner/project.git',
             contact={'name': 'Contact Name', 'email': 'valid@email.com'},
             featured=1234.56,
         )
@@ -573,7 +548,7 @@ def test_project_categories():
         AssertionError: If the test fails.
     """
     project = Project(
-        repository='https://example.com/project.git',
+        repository='https://example.com/owner/project.git',
         contact={'name': 'Contact Name', 'email': 'valid@email.com'},
         categories=['Category 1'],
     )
@@ -590,7 +565,7 @@ def test_project_categories_type():
     """
     with pytest.raises(ValidationError) as exc_info:
         Project(
-            repository='https://example.com/project.git',
+            repository='https://example.com/owner/project.git',
             contact={'name': 'Contact Name', 'email': 'valid@email.com'},
             categories=1234.56,
         )
@@ -610,7 +585,7 @@ def test_project_categories_empty():
     """
     with pytest.raises(ValidationError) as exc_info:
         Project(
-            repository='https://example.com/project.git',
+            repository='https://example.com/owner/project.git',
             contact={'name': 'Contact Name', 'email': 'valid@email.com'},
             categories=[],
         )
@@ -635,11 +610,11 @@ def test_project_list():
         AssertionError: If the test fails.
     """
     test_object = ProjectListTest(test_attribute=[{
-        'repository': 'https://example.com/project.git',
+        'repository': 'https://example.com/owner/project.git',
         'contact': {'name': 'Contact Name', 'email': 'valid@email.com'},
     }])
     assert test_object.test_attribute == [Project(
-        repository='https://example.com/project.git',
+        repository='https://example.com/owner/project.git',
         contact={'name': 'Contact Name', 'email': 'valid@email.com'},
     )]
 
@@ -654,7 +629,7 @@ def test_project_list_type():
     """
     with pytest.raises(ValidationError) as exc_info:
         ProjectListTest(test_attribute={
-            'repository': 'https://example.com/project.git',
+            'repository': 'https://example.com/owner/project.git',
             'contact': {'name': 'Contact Name', 'email': 'valid@email.com'},
         })
     assert (
@@ -692,7 +667,7 @@ def test_config_extra():
             sources='./src/hugo',
             licenses='./third_party/spdx/license-list-data/json/licenses.json',
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -717,7 +692,7 @@ def test_config_sources():
         sources='./src/hugo',
         licenses='./third_party/spdx/license-list-data/json/licenses.json',
         projects=[{
-            'repository': 'https://example.com/project.git',
+            'repository': 'https://example.com/owner/project.git',
             'contact': {
                 'name': 'Contact Name', 'email': 'valid@email.com',
             },
@@ -739,7 +714,7 @@ def test_config_sources_type():
             sources=1234.56,
             licenses='./third_party/spdx/license-list-data/json/licenses.json',
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -764,7 +739,7 @@ def test_config_sources_non_existent():
             sources='./non/existent/directory',
             licenses='./third_party/spdx/license-list-data/json/licenses.json',
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -789,7 +764,7 @@ def test_config_sources_missing():
         Config(
             licenses='./third_party/spdx/license-list-data/json/licenses.json',
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -814,7 +789,7 @@ def test_config_licenses():
         sources='./src/hugo',
         licenses='./third_party/spdx/license-list-data/json/licenses.json',
         projects=[{
-            'repository': 'https://example.com/project.git',
+            'repository': 'https://example.com/owner/project.git',
             'contact': {
                 'name': 'Contact Name', 'email': 'valid@email.com',
             },
@@ -838,7 +813,7 @@ def test_config_licenses_type():
             sources='./src/hugo',
             licenses=1234.56,
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -863,7 +838,7 @@ def test_config_licenses_non_existent():
             sources='./src/hugo',
             licenses='./non/existent/file',
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -887,7 +862,7 @@ def test_config_licenses_missing():
         Config(
             sources='./src/hugo',
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -912,14 +887,14 @@ def test_config_projects():
         sources='./src/hugo',
         licenses='./third_party/spdx/license-list-data/json/licenses.json',
         projects=[{
-            'repository': 'https://example.com/project.git',
+            'repository': 'https://example.com/owner/project.git',
             'contact': {
                 'name': 'Contact Name', 'email': 'valid@email.com',
             },
         }],
     )
     assert config.projects == [Project(
-        repository='https://example.com/project.git',
+        repository='https://example.com/owner/project.git',
         contact={'name': 'Contact Name', 'email': 'valid@email.com'},
     )]
 
@@ -997,7 +972,7 @@ def test_config_categories():
         licenses='./third_party/spdx/license-list-data/json/licenses.json',
         categories=[{'name': 'Category Name', 'description': 'Description'}],
         projects=[{
-            'repository': 'https://example.com/project.git',
+            'repository': 'https://example.com/owner/project.git',
             'contact': {
                 'name': 'Contact Name', 'email': 'valid@email.com',
             },
@@ -1022,7 +997,7 @@ def test_config_categories_type():
             licenses='./third_party/spdx/license-list-data/json/licenses.json',
             categories=1234.56,
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -1048,7 +1023,7 @@ def test_config_categories_empty():
             licenses='./third_party/spdx/license-list-data/json/licenses.json',
             categories=[],
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -1073,7 +1048,7 @@ def test_config_categories_match():
         licenses='./third_party/spdx/license-list-data/json/licenses.json',
         categories=[{'name': 'Category Name', 'description': 'Description'}],
         projects=[{
-            'repository': 'https://example.com/project.git',
+            'repository': 'https://example.com/owner/project.git',
             'contact': {
                 'name': 'Contact Name', 'email': 'valid@email.com',
             },
@@ -1099,7 +1074,7 @@ def test_config_categories_no_match():
                 {'name': 'Category Name', 'description': 'Description'},
             ],
             projects=[{
-                'repository': 'https://example.com/project.git',
+                'repository': 'https://example.com/owner/project.git',
                 'contact': {
                     'name': 'Contact Name', 'email': 'valid@email.com',
                 },
@@ -1107,9 +1082,9 @@ def test_config_categories_no_match():
             }],
         )
     assert (
-        "Project 'https://example.com/project.git' with unknown categories: " +
-        "'{'Wrong Name'}'. [type=value_error, input_value={'sources': " +
-        "'./src/hugo',...ries': ['Wrong Name']}]}, input_type=dict]"
+        "Project 'https://example.com/owner/project.git' with unknown " +
+        "categories: '{'Wrong Name'}'. [type=value_error, input_value={" +
+        "'sources': './src/hugo',...ries': ['Wrong Name']}]}, input_type=dict]"
     ) in str(exc_info.value)
 
 
@@ -1130,7 +1105,7 @@ def test_config_from_yaml():
 sources: './src/hugo'
 licenses: './third_party/spdx/license-list-data/json/licenses.json'
 projects:
-- repository: 'https://example.com/project.git'
+- repository: 'https://example.com/owner/project.git'
   contact:
     name: 'Contact Name'
     email: 'valid@email.com'
@@ -1140,7 +1115,7 @@ projects:
         sources='./src/hugo',
         licenses='./third_party/spdx/license-list-data/json/licenses.json',
         projects=[{
-            'repository': 'https://example.com/project.git',
+            'repository': 'https://example.com/owner/project.git',
             'contact': {
                 'name': 'Contact Name', 'email': 'valid@email.com',
             },

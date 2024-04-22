@@ -99,7 +99,7 @@ for project_config in config.projects:
     logging.debug("Defining content path for '{0}'...".format(manifest.name))
     try:
         project_path = os.path.join(
-            projects_dir, project_config.repository.project,
+            projects_dir, '{0}.md'.format(project_config.repository.project),
         )
     except (TypeError, AttributeError, BytesWarning) as project_path_error:
         logging.error(

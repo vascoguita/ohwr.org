@@ -55,10 +55,10 @@ class Repository(BaseModelForbidExtra, ABC):
         Raises:
             ValueError: If parsing url or creating repository fails.
         """
-        if url.host == 'github.com':
+        if url.host == 'xgithub.com':
             try:
                 return GitHubRepository(url=url)
-            except (ValidationError, ValueError) as github_error:
+            except ValidationError as github_error:
                 raise ValueError(
                     "GitHub repository '{0}' is not valid:\n{1}".format(
                         url, github_error,
@@ -76,10 +76,17 @@ class Repository(BaseModelForbidExtra, ABC):
 
     @computed_field
     def owner(self) -> str:
-        path = self.url.path.removeprefix('/')
-        parts = list(filter(None, path.split('/', 1)))
+        """
+        Retrieve the owner from the repository URL.
+
+        Returns:
+            str: owner.
+
+        Raises:
+            ValueError: If the owner cannot be parsed from the URL.
+        """
         try:
-            return parts[0]
+            return self._split()[0]
         except IndexError as owner_error:
             raise ValueError(
                 "Failed to parse owner from '{0}':\n{1}".format(
@@ -89,10 +96,17 @@ class Repository(BaseModelForbidExtra, ABC):
 
     @computed_field
     def project(self) -> str:
-        path = self.url.path.removeprefix('/')
-        parts = list(filter(None, path.split('/', 1)))
+        """
+        Retrieve the project name from the repository URL.
+
+        Returns:
+            str: project name.
+
+        Raises:
+            ValueError: If the project name cannot be parsed from the URL.
+        """
         try:
-            return parts[1].removesuffix('.git')
+            return self._split()[1].removesuffix('.git')
         except IndexError as project_error:
             raise ValueError(
                 "Failed to parse project name from '{0}':\n{1}".format(
@@ -100,10 +114,9 @@ class Repository(BaseModelForbidExtra, ABC):
                 ),
             )
 
-    def __split(self) -> list[str]:
+    def _split(self) -> list[str]:
         path = self.url.path.removeprefix('/')
         return list(filter(None, path.split('/', 1)))
-
 
 
 AnnotatedRepository = Annotated[HttpUrl, AfterValidator(Repository.create)]

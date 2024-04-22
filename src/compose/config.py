@@ -80,7 +80,7 @@ class Config(BaseModelForbidExtra):
                 if unknown:
                     raise ValueError(
                         "Project '{0}' with unknown categories: '{1}'.".format(
-                            project.repository, unknown,
+                            project.repository.url, unknown,
                         ),
                     )
         return self
