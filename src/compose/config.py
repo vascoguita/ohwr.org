@@ -7,17 +7,13 @@
 
 from typing import Annotated, Optional
 
-import yaml
-from pydantic import (
-    DirectoryPath,
-    EmailStr,
-    Field,
-    FilePath,
-    ValidationError,
-    model_validator,
-    validate_call,
+from pydantic import DirectoryPath, EmailStr, Field, FilePath, model_validator
+from pydantic_utils import (
+    AnnotatedStr,
+    AnnotatedStrList,
+    BaseModelForbidExtra,
+    YamlSchema,
 )
-from pydantic_utils import AnnotatedStr, AnnotatedStrList, BaseModelForbidExtra
 from repository import AnnotatedRepository
 
 
@@ -50,7 +46,7 @@ class Project(BaseModelForbidExtra):
 ProjectList = Annotated[list[Project], Field(min_length=1)]
 
 
-class Config(BaseModelForbidExtra):
+class Config(YamlSchema):
     """Main configuration schema."""
 
     sources: DirectoryPath
@@ -84,31 +80,3 @@ class Config(BaseModelForbidExtra):
                         ),
                     )
         return self
-
-    @classmethod
-    @validate_call
-    def from_yaml(cls, config_yaml: AnnotatedStr):
-        """
-        Load the configuration from YAML.
-
-        Parameters:
-            config_yaml: configuration YAML string.
-
-        Returns:
-            Config: The configuration object with validated category names.
-
-        Raises:
-            ValueError: If loading the configuration fails.
-        """
-        try:
-            config = yaml.safe_load(config_yaml)
-        except yaml.YAMLError as yaml_error:
-            raise ValueError(
-                'Failed to load YAML configuration:\n{0}'.format(yaml_error),
-            )
-        try:
-            return cls(**config)
-        except (ValidationError, TypeError) as config_error:
-            raise ValueError(
-                'YAML configuration is not valid:\n{0}'.format(config_error),
-            )

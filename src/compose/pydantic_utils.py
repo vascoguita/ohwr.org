@@ -10,6 +10,7 @@ from typing import Annotated
 from urllib import request
 from urllib.error import URLError
 
+import yaml
 from pydantic import (
     AfterValidator,
     BaseModel,
@@ -20,7 +21,6 @@ from pydantic import (
     ValidationError,
     validate_call,
 )
-import yaml
 
 
 class BaseModelForbidExtra(BaseModel, extra='forbid'):
@@ -35,33 +35,36 @@ AnnotatedStrList = Annotated[list[AnnotatedStr], Field(min_length=1)]
 
 
 class YamlSchema(BaseModelForbidExtra):
+    """Base class for loading Pydantic models from YAML."""
 
     @classmethod
     @validate_call
-    def from_yaml(cls, manifest_yaml: AnnotatedStr):
+    def from_yaml(cls, yaml_str: AnnotatedStr):
         """
-        Load Model from YAML.
+        Load model from YAML.
 
         Parameters:
-            manifest_yaml: manifest YAML string.
+            yaml_str: YAML string.
 
         Returns:
-            Manifest: The manifest object.
+            YamlSchema: The YamlSchema object.
 
         Raises:
-            ValueError: If loading the manifest fails.
+            ValueError: If loading the YAML fails.
         """
         try:
-            manifest = yaml.safe_load(manifest_yaml)
+            yaml_dict = yaml.safe_load(yaml_str)
         except yaml.YAMLError as yaml_error:
             raise ValueError(
-                'Failed to load YAML manifest:\n{0}'.format(yaml_error),
+                'Failed to load YAML:\n{0}'.format(yaml_error),
             )
         try:
-            return cls(**manifest)
-        except (ValidationError, TypeError) as manifest_error:
+            return cls(**yaml_dict)
+        except (ValidationError, TypeError) as construct_error:
             raise ValueError(
-                'YAML manifest is not valid:\n{0}'.format(manifest_error),
+                'Failed to initialize YamlSchema:\n{0}'.format(
+                    construct_error,
+                ),
             )
 
 
