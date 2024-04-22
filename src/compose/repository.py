@@ -55,7 +55,7 @@ class Repository(BaseModelForbidExtra, ABC):
         Raises:
             ValueError: If parsing url or creating repository fails.
         """
-        if url.host == 'xgithub.com':
+        if url.host == 'github.com':
             try:
                 return GitHubRepository(url=url)
             except ValidationError as github_error:
@@ -186,7 +186,7 @@ class GenericRepository(Repository):
                 "Failed to clone '{0}':\n{1}".format(self.url, clone_error),
             )
         try:
-            with open(os.path.join(tmpdir, filepath)) as repository_file:
+            with open(os.path.join(tmpdir, filepath), 'r') as repository_file:
                 return repository_file.read()
         except FileNotFoundError as file_error:
             raise ValueError(

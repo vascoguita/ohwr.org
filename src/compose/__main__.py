@@ -114,3 +114,12 @@ for project_config in config.projects:
             manifest.name, project_path,
         ),
     )
+    try:
+        project.dump(project_path)
+    except ValidationError as project_dump_error:
+        logging.error(
+            "Failed to write content for '{0}' to '{1}':\n{2}".format(
+                manifest.name, project_path, project_dump_error,
+            ),
+        )
+        continue

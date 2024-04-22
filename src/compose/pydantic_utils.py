@@ -17,7 +17,10 @@ from pydantic import (
     HttpUrl,
     PlainSerializer,
     StringConstraints,
+    ValidationError,
+    validate_call,
 )
+import yaml
 
 
 class BaseModelForbidExtra(BaseModel, extra='forbid'):
@@ -29,6 +32,37 @@ AnnotatedStr = Annotated[str, StringConstraints(
     min_length=1,
 )]
 AnnotatedStrList = Annotated[list[AnnotatedStr], Field(min_length=1)]
+
+
+class YamlSchema(BaseModelForbidExtra):
+
+    @classmethod
+    @validate_call
+    def from_yaml(cls, manifest_yaml: AnnotatedStr):
+        """
+        Load Model from YAML.
+
+        Parameters:
+            manifest_yaml: manifest YAML string.
+
+        Returns:
+            Manifest: The manifest object.
+
+        Raises:
+            ValueError: If loading the manifest fails.
+        """
+        try:
+            manifest = yaml.safe_load(manifest_yaml)
+        except yaml.YAMLError as yaml_error:
+            raise ValueError(
+                'Failed to load YAML manifest:\n{0}'.format(yaml_error),
+            )
+        try:
+            return cls(**manifest)
+        except (ValidationError, TypeError) as manifest_error:
+            raise ValueError(
+                'YAML manifest is not valid:\n{0}'.format(manifest_error),
+            )
 
 
 def is_reachable(url: HttpUrl) -> HttpUrl:

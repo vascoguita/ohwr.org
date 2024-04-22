@@ -50,8 +50,7 @@ lint-python:
 
 .PHONY: lint-markdown
 lint-markdown:
-	markdownlint-cli2 '${CURDIR}/**/*.md' '#${CURDIR}/.venv' \
-		'#${CURDIR}/src/hugo/archetypes'
+	markdownlint-cli2 '${CURDIR}/**/*.md' '#${CURDIR}/.venv'
 
 test-pytest:
 	pytest ${CURDIR}/test
@@ -63,5 +62,5 @@ test-pytest:
 .PHONY: clean
 clean:
 	rm -rf ${PUBLIC} ${HUGO}/resources ${HUGO}/.hugo_build.lock \
-		${HUGO}/data ${HUGO}/content/projects ${HUGO}/content/news \
+		${HUGO}/content/projects ${HUGO}/content/news \
 		${HUGO}/content/categories
