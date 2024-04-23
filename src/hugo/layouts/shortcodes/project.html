@@ -4,15 +4,15 @@ SPDX-FileCopyrightText: 2024 CERN (home.cern)
 SPDX-License-Identifier: BSD-3-Clause
 -->
 
-{{ $website := .Get "website" }}
-{{ $latest_release := .Get "latest_release" }}
-{{ $documentation := .Get "documentation" }}
-{{ $repository := .Get "repository" }}
-{{ $issues := .Get "issues" }}
-{{ $forum := .Get "forum" }}
-{{ $links := .Get "links" }}
-{{ $contact := .Get "contact" }}
-{{ $licenses := .Get "licenses" }}
+{{ $website := $.Page.Params.website }}
+{{ $latest_release := $.Page.Params.latest_release }}
+{{ $documentation := $.Page.Params.documentation }}
+{{ $repository := $.Page.Params.repository }}
+{{ $issues := $.Page.Params.issues }}
+{{ $forum := $.Page.Params.forum }}
+{{ $links := $.Page.Params.links }}
+{{ $contact := $.Page.Params.contact }}
+{{ $licenses := $.Page.Params.licenses }}
 
 <div class="card border-0 shadow-lg">
   <div class="card-body mb-0">

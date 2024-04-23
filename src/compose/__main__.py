@@ -10,10 +10,12 @@ import os
 import sys
 
 from config import Config
+from description import Description
+from license import SpdxLicenseList
 from manifest import Manifest
 from project import Project
 from pydantic import ValidationError
-from spdx import Spdx
+from repository import Repository
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -35,7 +37,7 @@ except (ValidationError, ValueError) as config_error:
 
 logging.info("Loading SPDX license list from '{0}'...".format(config.licenses))
 try:
-    Spdx.from_file(config.licenses)
+    spdx_licenses = SpdxLicenseList.from_file(config.licenses)
 except (ValidationError, ValueError) as license_error:
     logging.error(
         'Failed to load SPDX license list:\n{0}'.format(license_error),
@@ -65,17 +67,54 @@ except OSError as projects_dir_error:
     sys.exit(1)
 
 for project_config in config.projects:
-    logging.info(
-        "Loading manifest from '{0}'...".format(
-            project_config.repository.url,
-        ),
+    logging.debug(
+        "Loading repository from '{0}'...".format(project_config.repository),
     )
     try:
-        manifest = Manifest.from_repository(project_config.repository)
+        repository = Repository.create(project_config.repository)
+    except (ValidationError, ValueError) as repository_error:
+        logging.error(
+            "Failed to load repository from '{0}':\n{1}".format(
+                project_config.repository, repository_error,
+            ),
+        )
+        continue
+
+    logging.info(
+        "Loading manifest from '{0}'...".format(repository.url),
+    )
+    try:
+        manifest = Manifest.from_repository(repository)
     except (ValidationError, ValueError) as manifest_error:
         logging.error(
             "Failed to load manifest from '{0}':\n{1}".format(
-                project_config.repository.url, manifest_error,
+                repository.url, manifest_error,
+            ),
+        )
+        continue
+
+    logging.info(
+        "Loading description from '{0}'...".format(manifest.description),
+    )
+    try:
+        description = Description.from_url(manifest.description)
+    except (ValidationError, ValueError) as description_error:
+        logging.error(
+            "Failed to load description from '{0}':\n{1}".format(
+                repository.url, description_error,
+            ),
+        )
+        continue
+
+    logging.info("Loading licenses for '{0}'...".format(manifest.name))
+    licenses = []
+    try:
+        for license_id in manifest.licenses:
+            licenses.append(spdx_licenses.get_license(license_id))
+    except (ValidationError, ValueError) as license_error:
+        logging.error(
+            "Failed to load licenses for '{0}':\n{1}".format(
+                manifest.name, license_error,
             ),
         )
         continue
@@ -85,8 +124,18 @@ for project_config in config.projects:
         project = Project(
             title=manifest.name,
             images=manifest.images,
-            featured=project_config.featured,
             categories=project_config.categories,
+            featured=project_config.featured,
+            website=manifest.website,
+            latest_release=manifest.latest_release,
+            documentation=manifest.documentation,
+            repository=repository.url,
+            issues=manifest.issues,
+            forum=manifest.forum,
+            links=manifest.links,
+            contact=project_config.contact,
+            licenses=licenses,
+            description=description.data,
         )
     except ValidationError as project_error:
         logging.error(
@@ -99,7 +148,7 @@ for project_config in config.projects:
     logging.debug("Defining content path for '{0}'...".format(manifest.name))
     try:
         project_path = os.path.join(
-            projects_dir, '{0}.md'.format(project_config.repository.project),
+            projects_dir, '{0}.md'.format(repository.project),
         )
     except (TypeError, AttributeError, BytesWarning) as project_path_error:
         logging.error(
@@ -122,4 +171,3 @@ for project_config in config.projects:
                 manifest.name, project_path, project_dump_error,
             ),
         )
-        continue

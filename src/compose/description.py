@@ -2,50 +2,50 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Load, parse and validate project description."""
+"""Load description."""
 
 import re
+from collections import UserString
 from urllib import request
 from urllib.error import URLError
 
-from base import BaseModelForbidExtra
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError, validate_call
+from pydantic_utils import AnnotatedStr
 
 
-class DescriptionError(Exception):
-    """Failed to load, parse or validate description."""
-
-
-class Description(BaseModelForbidExtra):
-    """Loads, parses and validates project description."""
-
-    md: str
+class Description(UserString):
+    """Project description string."""
 
     @classmethod
-    def from_url(cls, url: str):
+    @validate_call
+    def from_url(cls, url: HttpUrl):
         """
-        Load a Markdown description from a URL.
+        Load description from a URL.
 
         Parameters:
-            url: Markdown description URL.
+            url: Description URL.
 
         Returns:
             Description object.
 
         Raises:
-            DescriptionError: if loading the description fails.
+            ValueError: if loading the description fails.
         """
         try:
-            with request.urlopen(url) as response:  # noqa: S310
-                return cls.load(response.read().decode('utf-8'))
-        except URLError as error:
-            msg = 'Failed to request {0}:\n↳ {1}'
-            raise DescriptionError(msg.format(url, error))
+            with request.urlopen(str(url), timeout=5) as res:  # noqa: S310
+                return cls.from_md(res.read().decode('utf-8'))
+        except (URLError, ValueError, TimeoutError) as urlopen_error:
+            raise ValueError(
+                "Failed to load description from '{0}':\n{1}".format(
+                    url, urlopen_error,
+                ),
+            )
 
     @classmethod
-    def load(cls, md: str):
+    @validate_call
+    def from_md(cls, md: AnnotatedStr):
         """
-        Parse and validate project Markdown description.
+        Load description from Markdown.
 
         Parameters:
             md: Markdown description.
@@ -54,21 +54,26 @@ class Description(BaseModelForbidExtra):
             Description object.
 
         Raises:
-            DescriptionError: if parsing or validating the description fails.
+            ValueError: if loading the description fails.
         """
         try:
             md = re.sub('<!--(.*?)-->', '', md, flags=re.DOTALL).strip()
         except ValueError as re_error:
-            msg = 'Failed to process Markdown content:\n↳ {0}'
-            raise DescriptionError(msg.format(re_error))
+            raise ValueError(
+                'Failed to process Markdown:\n{0}'.format(re_error),
+            )
         while md.startswith('#'):
             try:
                 md = md.split('\n', 1)[1].strip()
             except IndexError as split_error:
-                msg = 'Failed to fetch Markdown after headings:\n↳ {0}'
-                raise DescriptionError(msg.format(split_error))
+                raise ValueError(
+                    'Failed to fetch Markdown after headings:\n{0}'.format(
+                        split_error,
+                    ),
+                )
         try:
-            return cls(md=md.split('\n#')[0].strip())
+            return cls(md.split('\n#')[0].strip())
         except ValidationError as validation_error:
-            msg = 'Description is not valid:\n↳ {0}'
-            raise DescriptionError(msg.format(validation_error))
+            raise ValueError(
+                'Description is not valid:\n{0}'.format(validation_error),
+            )

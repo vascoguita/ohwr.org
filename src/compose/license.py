@@ -2,20 +2,29 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""SPDX license utilities."""
+"""Load licenses."""
 
 
 import json
+from collections import UserDict
 from typing import Annotated
 
-from pydantic import AfterValidator, Field, FilePath, validate_call
-from pydantic_utils import AnnotatedStr
+from pydantic import Field, FilePath, ValidationError, validate_call
+from pydantic_utils import AnnotatedStr, BaseModelForbidExtra, SerializableUrl
 
 
-class Spdx:
-    """SPDX license list data singleton."""
+class License(BaseModelForbidExtra):
+    """License data."""
 
-    _licenses: dict = None
+    name: AnnotatedStr
+    url: SerializableUrl
+
+
+LicenseList = Annotated[list[License], Field(min_length=1)]
+
+
+class SpdxLicenseList(UserDict):
+    """SPDX license list data."""
 
     @classmethod
     @validate_call
@@ -30,8 +39,8 @@ class Spdx:
             ValueError: if JSON is not valid.
         """
         try:
-            cls._licenses = json.loads(licenses_json)
-        except json.JSONDecodeError as json_error:
+            return cls(json.loads(licenses_json))
+        except (TypeError, json.JSONDecodeError) as json_error:
             raise ValueError(
                 'Failed to load JSON license list:\n{0}'.format(json_error),
             )
@@ -50,7 +59,7 @@ class Spdx:
         """
         try:
             with open(licenses) as licenses_file:
-                cls.from_json(licenses_file.read())
+                return cls.from_json(licenses_file.read())
         except (ValueError, FileNotFoundError) as file_error:
             raise ValueError(
                 "Failed to load license list file '{0}':\n{1}".format(
@@ -58,9 +67,8 @@ class Spdx:
                 ),
             )
 
-    @classmethod
     @validate_call
-    def get_license(cls, license_id: AnnotatedStr) -> dict:
+    def get_license(self, license_id: AnnotatedStr) -> License:
         """
         Find license data for an SPDX license identifier.
 
@@ -68,41 +76,21 @@ class Spdx:
             license_id: license identifier string.
 
         Returns:
-            dict: license data.
+            License: The License object.
 
         Raises:
             ValueError: if no data was found for an SPDX license identifier.
         """
-        if cls._licenses:
-            for license in cls._licenses['licenses']:
-                if license['licenseId'] == license_id:
-                    return license
-        raise ValueError("No license data found for '{0}'.".format(license_id))
-
-
-def is_spdx(license_id: AnnotatedStr) -> AnnotatedStr:
-    """
-    Check if the string is a valid SPDX license identifier.
-
-    Parameters:
-        license_id: license identifier string.
-
-    Returns:
-        License identifier string.
-
-    Raises:
-        ValueError: if the string is not a valid SPDX license identifier.
-    """
-    try:
-        Spdx.get_license(license_id)
-    except ValueError as spdx_error:
+        for license in self['licenses']:
+            if license['licenseId'] == license_id:
+                try:
+                    return License(name=license['name'], url=license['reference'])
+                except (ValidationError, KeyError) as license_error:
+                    raise ValueError(
+                        "Failed to load license '{0}':\n{1}".format(
+                            license_id, license_error,
+                        ),
+                    )
         raise ValueError(
-            "Unknown SPDX license identifier '{0}':\n{1}".format(
-                license_id, spdx_error,
-            ),
+            "Unknown SPDX license identifier '{0}'.".format(license_id),
         )
-    return license_id
-
-
-License = Annotated[AnnotatedStr, AfterValidator(is_spdx)]
-LicenseList = Annotated[list[License], Field(min_length=1)]

@@ -7,14 +7,20 @@
 
 from typing import Annotated, Optional
 
-from pydantic import DirectoryPath, EmailStr, Field, FilePath, model_validator
+from pydantic import (
+    DirectoryPath,
+    EmailStr,
+    Field,
+    FilePath,
+    HttpUrl,
+    model_validator,
+)
 from pydantic_utils import (
     AnnotatedStr,
     AnnotatedStrList,
     BaseModelForbidExtra,
     YamlSchema,
 )
-from repository import AnnotatedRepository
 
 
 class Contact(BaseModelForbidExtra):
@@ -37,7 +43,7 @@ CategoryList = Annotated[list[Category], Field(min_length=1)]
 class Project(BaseModelForbidExtra):
     """Project configuration schema."""
 
-    repository: AnnotatedRepository
+    repository: HttpUrl
     contact: Contact
     featured: Optional[bool] = False
     categories: Optional[AnnotatedStrList] = None
@@ -55,7 +61,7 @@ class Config(YamlSchema):
     projects: ProjectList
 
     @model_validator(mode='after')
-    def check_categories_match(self) -> 'Config':
+    def check_categories_match(self):
         """
         Check if categories in projects match the available categories.
 
@@ -76,7 +82,7 @@ class Config(YamlSchema):
                 if unknown:
                     raise ValueError(
                         "Project '{0}' with unknown categories: '{1}'.".format(
-                            project.repository.url, unknown,
+                            project.repository, unknown,
                         ),
                     )
         return self
