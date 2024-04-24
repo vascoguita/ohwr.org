@@ -67,7 +67,7 @@ class Manifest(YamlSchema):
 
     version: Literal['1.0.0']
     name: AnnotatedStr
-    description: ReachableUrl
+    description: HttpUrl
     website: ReachableUrl
     licenses: AnnotatedStrList
     images: Optional[ReachableUrlList] = None
@@ -75,7 +75,7 @@ class Manifest(YamlSchema):
     issues: Optional[ReachableUrl] = None
     latest_release: Optional[ReachableUrl] = None
     forum: Optional[ReachableUrl] = None
-    newsfeed: Optional[ReachableUrl] = None
+    newsfeed: Optional[HttpUrl] = None
     links: Optional[LinkList] = None
 
     @classmethod

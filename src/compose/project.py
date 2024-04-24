@@ -5,13 +5,13 @@
 """Compose project content."""
 
 
-from typing import Annotated, Optional
+from typing import Optional
 
 import yaml
 from config import Contact
 from license import LicenseList
 from manifest import LinkList
-from pydantic import Field, NewPath, validate_call
+from pydantic import NewPath, validate_call
 from pydantic_utils import (
     AnnotatedStr,
     AnnotatedStrList,
