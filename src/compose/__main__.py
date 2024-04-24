@@ -39,9 +39,9 @@ except (ValidationError, ValueError) as config_error:
 logging.info("Loading SPDX license list from '{0}'...".format(config.licenses))
 try:
     spdx_licenses = SpdxLicenseList.from_file(config.licenses)
-except (ValidationError, ValueError) as license_error:
+except (ValidationError, ValueError) as spdx_error:
     logging.error(
-        'Failed to load SPDX license list:\n{0}'.format(license_error),
+        'Failed to load SPDX license list:\n{0}'.format(spdx_error),
     )
     sys.exit(1)
 
@@ -76,7 +76,9 @@ for category_config in config.categories:
         )
         sys.exit(1)
 
-    logging.info("Generating the '{0}' category...".format(category_config.name))
+    logging.info(
+        "Generating the '{0}' category...".format(category_config.name),
+    )
     try:
         category = Category(
             title=category_config.name,
@@ -103,7 +105,8 @@ for category_config in config.categories:
         )
         sys.exit(1)
 
-    logging.info("Writing category '{0}' to '{1}'...".format(
+    logging.info(
+        "Writing category '{0}' to '{1}'...".format(
             category.title, category_path,
         ),
     )
