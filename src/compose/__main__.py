@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 
+from category import Category
 from config import Config
 from description import Description
 from license import SpdxLicenseList
@@ -43,6 +44,43 @@ except (ValidationError, ValueError) as license_error:
         'Failed to load SPDX license list:\n{0}'.format(license_error),
     )
     sys.exit(1)
+
+logging.debug('Defining content directory for categories...')
+try:
+    categories_dir = os.path.join(config.sources, 'content/categories')
+except (TypeError, AttributeError, BytesWarning) as categories_path_error:
+    logging.error(
+        'Failed to define content directory for categories:\n{0}'.format(
+            categories_path_error,
+        ),
+    )
+    sys.exit(1)
+
+logging.debug("Creating '{0}' directory...".format(categories_dir))
+try:
+    os.makedirs(categories_dir)
+except OSError as categories_dir_error:
+    logging.error(
+        "Failed to create '{0}' directory:\n{1}".format(
+            categories_dir, categories_dir_error,
+        ),
+    )
+    sys.exit(1)
+
+for category_config in config.categories:
+    logging.info("Generating the '{0}' category...".format(category_config.name))
+    try:
+        category = Category(
+            title=category_config.name,
+            description=category_config.description,
+        )
+    except ValidationError as category_error:
+        logging.error(
+            "Failed to generate the '{0}' category:\n{1}".format(
+                category_config.name, category_error,
+            ),
+        )
+        sys.exit(1)
 
 logging.debug('Defining content directory for projects...')
 try:
@@ -80,9 +118,7 @@ for project_config in config.projects:
         )
         continue
 
-    logging.info(
-        "Loading manifest from '{0}'...".format(repository.url),
-    )
+    logging.info("Loading manifest from '{0}'...".format(repository.url))
     try:
         manifest = Manifest.from_repository(repository)
     except (ValidationError, ValueError) as manifest_error:

@@ -48,12 +48,8 @@ class Project(BaseModelForbidExtra):
             path: The file path where the content will be saved.
         """
         hugo_content = (
-            '---\n' +
-            '{0}' +
-            '---\n' +
-            '{{{{< project >}}}}\n' +
-            '{1}\n' +
-            '{{{{< /project >}}}}\n' +
+            '---\n{0}---\n' +
+            '{{{{< project >}}}}\n{1}\n{{{{< /project >}}}}\n' +
             '{{{{< latest-news >}}}}'
         ).format(
             yaml.safe_dump(
