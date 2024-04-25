@@ -35,6 +35,9 @@ class SpdxLicenseList(UserDict):
         Parameters:
             licenses_json: SPDX license list data JSON string.
 
+        Returns:
+            SpdxLicenseList: The SpdxLicenseList object.
+
         Raises:
             ValueError: if JSON is not valid.
         """
@@ -53,6 +56,9 @@ class SpdxLicenseList(UserDict):
 
         Parameters:
             licenses: SPDX license list data JSON file path.
+
+        Returns:
+            SpdxLicenseList: The SpdxLicenseList object.
 
         Raises:
             ValueError: if file is not valid.
@@ -84,7 +90,9 @@ class SpdxLicenseList(UserDict):
         for license in self['licenses']:
             if license['licenseId'] == license_id:
                 try:
-                    return License(name=license['name'], url=license['reference'])
+                    return License(
+                        name=license['name'], url=license['reference'],
+                    )
                 except (ValidationError, KeyError) as license_error:
                     raise ValueError(
                         "Failed to load license '{0}':\n{1}".format(

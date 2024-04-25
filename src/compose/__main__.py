@@ -45,80 +45,83 @@ except (ValidationError, ValueError) as spdx_error:
     )
     sys.exit(1)
 
-for category_config in config.categories:
-    logging.debug(
-        "Defining category directory for '{0}'...".format(
-            category_config.name,
-        ),
-    )
-    try:
-        category_dir = os.path.join(
-            config.sources,
-            'content/categories',
-            category_config.name.lower().replace(' ', '-'),
-        )
-    except (TypeError, AttributeError, BytesWarning) as category_path_error:
-        logging.error(
-            "Failed to define category directory for '{0}':\n{1}".format(
-                category_path_error, category_config.name,
+if config.categories:
+    for category_config in config.categories:
+        logging.debug(
+            "Defining category directory for '{0}'...".format(
+                category_config.name,
             ),
         )
-        sys.exit(1)
+        try:
+            category_dir = os.path.join(
+                config.sources,
+                'content/categories',
+                category_config.name.lower().replace(' ', '-'),
+            )
+        except (TypeError, AttributeError, BytesWarning) as category_dir_error:
+            logging.error(
+                "Failed to define category directory for '{0}':\n{1}".format(
+                    category_dir_error, category_config.name,
+                ),
+            )
+            sys.exit(1)
 
-    logging.debug("Creating '{0}' directory...".format(category_dir))
-    try:
-        os.makedirs(category_dir)
-    except OSError as category_dir_error:
-        logging.error(
-            "Failed to create '{0}' directory:\n{1}".format(
-                category_dir, category_dir_error,
-            ),
-        )
-        sys.exit(1)
+        logging.debug("Creating '{0}' directory...".format(category_dir))
+        try:
+            os.makedirs(category_dir)
+        except OSError as make_category_dir_error:
+            logging.error(
+                "Failed to create '{0}' directory:\n{1}".format(
+                    category_dir, make_category_dir_error,
+                ),
+            )
+            sys.exit(1)
 
-    logging.info(
-        "Generating the '{0}' category...".format(category_config.name),
-    )
-    try:
-        category = Category(
-            title=category_config.name,
-            description=category_config.description,
+        logging.info(
+            "Generating the '{0}' category...".format(category_config.name),
         )
-    except ValidationError as category_error:
-        logging.error(
-            "Failed to generate the '{0}' category:\n{1}".format(
-                category_config.name, category_error,
-            ),
-        )
-        sys.exit(1)
+        try:
+            category = Category(
+                title=category_config.name,
+                description=category_config.description,
+            )
+        except ValidationError as category_error:
+            logging.error(
+                "Failed to generate the '{0}' category:\n{1}".format(
+                    category_config.name, category_error,
+                ),
+            )
+            sys.exit(1)
 
-    logging.debug(
-        "Defining category path for '{0}'...".format(category.title),
-    )
-    try:
-        category_path = os.path.join(category_dir, '_index.md')
-    except (TypeError, AttributeError, BytesWarning) as category_file_error:
-        logging.error(
-            "Failed to define category path for '{0}':\n{1}".format(
-                category.title, category_file_error,
-            ),
+        logging.debug(
+            "Defining category path for '{0}'...".format(category.title),
         )
-        sys.exit(1)
+        try:
+            category_path = os.path.join(category_dir, '_index.md')
+        except (
+            TypeError, AttributeError, BytesWarning,
+        ) as category_path_error:
+            logging.error(
+                "Failed to define category path for '{0}':\n{1}".format(
+                    category.title, category_path_error,
+                ),
+            )
+            sys.exit(1)
 
-    logging.info(
-        "Writing category '{0}' to '{1}'...".format(
-            category.title, category_path,
-        ),
-    )
-    try:
-        category.dump(category_path)
-    except ValidationError as category_dump_error:
-        logging.error(
-            "Failed to write content for '{0}' to '{1}':\n{2}".format(
-                category.title, category_path, category_dump_error,
+        logging.info(
+            "Writing category '{0}' to '{1}'...".format(
+                category.title, category_path,
             ),
         )
-        sys.exit(1)
+        try:
+            category.dump(category_path)
+        except ValidationError as category_dump_error:
+            logging.error(
+                "Failed to write content for '{0}' to '{1}':\n{2}".format(
+                    category.title, category_path, category_dump_error,
+                ),
+            )
+            sys.exit(1)
 
 logging.debug('Defining content directory for projects...')
 try:

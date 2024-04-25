@@ -18,7 +18,13 @@ from pydantic import (
     ValidationError,
     validate_call,
 )
-from pydantic_utils import AnnotatedStr, AnnotatedStrList, BaseModelForbidExtra, SerializableUrl, YamlSchema
+from pydantic_utils import (
+    AnnotatedStr,
+    AnnotatedStrList,
+    BaseModelForbidExtra,
+    SerializableUrl,
+    YamlSchema,
+)
 from repository import Repository
 
 

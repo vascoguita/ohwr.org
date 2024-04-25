@@ -47,15 +47,14 @@ class Project(BaseModelForbidExtra):
         Parameters:
             path: The file path where the content will be saved.
         """
-        hugo_content = (
-            '---\n{0}---\n' +
-            '{{{{< project >}}}}\n{1}\n{{{{< /project >}}}}\n' +
-            '{{{{< latest-news >}}}}'
-        ).format(
-            yaml.safe_dump(
-                self.model_dump(exclude_none=True, exclude={'description'}),
-            ),
-            self.description,
+        front_matter_dict = self.model_dump(
+            exclude_none=True, exclude={'description'},
         )
+        front_matter = yaml.safe_dump(front_matter_dict)
+        markdown = (
+            '{{{{< project >}}}}\n{0}\n{{{{< /project >}}}}\n' +
+            '{{{{< latest-news >}}}}'
+        ).format(self.description)
+        hugo_content = '---\n{0}---\n{1}'.format(front_matter, markdown)
         with open(path, 'w') as content_file:
             content_file.write(hugo_content)
