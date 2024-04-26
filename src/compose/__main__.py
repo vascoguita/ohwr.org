@@ -9,12 +9,12 @@ import logging
 import os
 import sys
 
-from category import Category
 from config import Config
+from content import Category, Project
 from description import Description
 from license import SpdxLicenseList
 from manifest import Manifest
-from project import Project
+from news import Newsfeed
 from pydantic import ValidationError
 from repository import Repository
 
@@ -145,6 +145,28 @@ except OSError as projects_dir_error:
     )
     sys.exit(1)
 
+logging.debug('Defining content directory for news...')
+try:
+    news_dir = os.path.join(config.sources, 'content/news')
+except (TypeError, AttributeError, BytesWarning) as news_path_error:
+    logging.error(
+        'Failed to define content directory for news:\n{0}'.format(
+            news_path_error,
+        ),
+    )
+    sys.exit(1)
+
+logging.debug("Creating '{0}' directory...".format(news_dir))
+try:
+    os.makedirs(news_dir)
+except OSError as news_dir_error:
+    logging.error(
+        "Failed to create '{0}' directory:\n{1}".format(
+            news_dir, news_dir_error,
+        ),
+    )
+    sys.exit(1)
+
 for project_config in config.projects:
     logging.debug(
         "Loading repository from '{0}'...".format(project_config.repository),
@@ -178,7 +200,7 @@ for project_config in config.projects:
     except (ValidationError, ValueError) as description_error:
         logging.error(
             "Failed to load description from '{0}':\n{1}".format(
-                repository.url, description_error,
+                manifest.description, description_error,
             ),
         )
         continue
@@ -248,3 +270,21 @@ for project_config in config.projects:
                 manifest.name, project_path, project_dump_error,
             ),
         )
+        continue
+
+    if manifest.newsfeed:
+        logging.info(
+            "Loading newsfeed from '{0}'...".format(manifest.newsfeed),
+        )
+        try:
+            newsfeed = Newsfeed.from_url(manifest.newsfeed)
+        except (ValidationError, ValueError) as newsfeed_error:
+            logging.error(
+                "Failed to load newsfeed from '{0}':\n{1}".format(
+                    manifest.newsfeed, newsfeed_error,
+                ),
+            )
+            continue
+
+        for news in newsfeed:
+            

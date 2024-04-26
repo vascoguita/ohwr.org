@@ -11,7 +11,7 @@ from logging import info
 
 import yaml
 from config import CatConfig, ProjConfig
-from newsfeed import News
+from compose.news import News
 
 
 @dataclass

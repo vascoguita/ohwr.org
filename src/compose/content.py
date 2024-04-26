@@ -77,7 +77,7 @@ class Project(BaseModelForbidExtra):
         Write content to a file.
 
         Parameters:
-            path: The file path where the content will be saved.
+            path: The file path where the project content will be saved.
         """
         front_matter = self.model_dump(
             exclude_none=True, exclude={'description'},
@@ -101,7 +101,7 @@ class Category(BaseModelForbidExtra):
         Write content to a file.
 
         Parameters:
-            path: The file path where the content will be saved.
+            path: The file path where the category content will be saved.
         """
         front_matter = self.model_dump(include={'title'})
         Hugo(front_matter=front_matter, markdown=self.description).dump(path)
@@ -113,7 +113,7 @@ class News(BaseModelForbidExtra):
     title: AnnotatedStr
     date: datetime.date
     images: Optional[SerializableUrlList] = None
-    topics: Optional[AnnotatedStrList] = None
+    topics: AnnotatedStrList
     description: AnnotatedStr = None
 
     @validate_call
@@ -122,10 +122,9 @@ class News(BaseModelForbidExtra):
         Write content to a file.
 
         Parameters:
-            path: The file path where the content will be saved.
+            path: The file path where the news content will be saved.
         """
         front_matter = self.model_dump(
             exclude_none=True, exclude={'description'},
         )
         Hugo(front_matter=front_matter, markdown=self.description).dump(path)
-

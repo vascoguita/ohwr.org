@@ -5,57 +5,18 @@
 """Load manifest."""
 
 
-import logging
-from http import HTTPMethod, HTTPStatus
 from typing import Annotated, Literal, Optional
-from urllib import request
-from urllib.error import URLError
 
-from pydantic import (
-    AfterValidator,
-    Field,
-    HttpUrl,
-    ValidationError,
-    validate_call,
-)
+from pydantic import Field, HttpUrl, ValidationError, validate_call
 from pydantic_utils import (
     AnnotatedStr,
     AnnotatedStrList,
     BaseModelForbidExtra,
-    SerializableUrl,
+    ReachableUrl,
+    ReachableUrlList,
     YamlSchema,
 )
 from repository import Repository
-
-
-def is_reachable(url: HttpUrl) -> HttpUrl:
-    """
-    Check if the URL is reachable.
-
-    Parameters:
-        url: HTTP URL.
-
-    Returns:
-        HTTP URL.
-
-    Raises:
-        ValueError: if the URL is not reachable.
-    """
-    logging.debug("Checking if '{0}' is reachable...".format(url))
-    req = request.Request(url, method=HTTPMethod.HEAD)
-    try:
-        with request.urlopen(req, timeout=5) as res:  # noqa: S310
-            if res.status != HTTPStatus.OK:
-                raise ValueError("Status code: '{0}'.".format(res.status))
-    except (URLError, ValueError, TimeoutError) as urlopen_error:
-        raise ValueError(
-            "Failed to access URL '{0}':\n{1}".format(url, urlopen_error),
-        )
-    return url
-
-
-ReachableUrl = Annotated[SerializableUrl, AfterValidator(is_reachable)]
-ReachableUrlList = Annotated[list[ReachableUrl], Field(min_length=1)]
 
 
 class Link(BaseModelForbidExtra):

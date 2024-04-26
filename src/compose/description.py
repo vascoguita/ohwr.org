@@ -58,7 +58,7 @@ class Description(UserString):
         """
         try:
             md = re.sub('<!--(.*?)-->', '', md, flags=re.DOTALL).strip()
-        except ValueError as re_error:
+        except (re.error, TypeError) as re_error:
             raise ValueError(
                 'Failed to process Markdown:\n{0}'.format(re_error),
             )
