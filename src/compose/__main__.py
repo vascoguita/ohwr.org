@@ -10,11 +10,11 @@ import os
 import sys
 
 from config import Config
-from content import Category, Project
+from content import Category, News, Project
 from description import Description
 from license import SpdxLicenseList
 from manifest import Manifest
-from news import Newsfeed
+from news import NewsList
 from pydantic import ValidationError
 from repository import Repository
 
@@ -148,10 +148,10 @@ except OSError as projects_dir_error:
 logging.debug('Defining content directory for news...')
 try:
     news_dir = os.path.join(config.sources, 'content/news')
-except (TypeError, AttributeError, BytesWarning) as news_path_error:
+except (TypeError, AttributeError, BytesWarning) as news_dir_error:
     logging.error(
         'Failed to define content directory for news:\n{0}'.format(
-            news_path_error,
+            news_dir_error,
         ),
     )
     sys.exit(1)
@@ -159,10 +159,10 @@ except (TypeError, AttributeError, BytesWarning) as news_path_error:
 logging.debug("Creating '{0}' directory...".format(news_dir))
 try:
     os.makedirs(news_dir)
-except OSError as news_dir_error:
+except OSError as news_makedirs_error:
     logging.error(
         "Failed to create '{0}' directory:\n{1}".format(
-            news_dir, news_dir_error,
+            news_dir, news_makedirs_error,
         ),
     )
     sys.exit(1)
@@ -277,7 +277,7 @@ for project_config in config.projects:
             "Loading newsfeed from '{0}'...".format(manifest.newsfeed),
         )
         try:
-            newsfeed = Newsfeed.from_url(manifest.newsfeed)
+            news_list = NewsList.from_url(manifest.newsfeed)
         except (ValidationError, ValueError) as newsfeed_error:
             logging.error(
                 "Failed to load newsfeed from '{0}':\n{1}".format(
@@ -286,5 +286,52 @@ for project_config in config.projects:
             )
             continue
 
-        for news in newsfeed:
-            
+        for index, news_item in enumerate(news_list):
+            logging.info("Generating news for '{0}'...".format(manifest.name))
+            try:
+                news = News(
+                    title=news_item.title,
+                    date=news_item.date,
+                    images=news_item.images,
+                    topics=[manifest.name],
+                    description=news_item.description,
+                )
+            except ValidationError as news_error:
+                logging.error(
+                    "Failed to generate news for '{0}':\n{1}".format(
+                        manifest.name, news_error,
+                    ),
+                )
+                continue
+            logging.debug(
+                "Defining path for news '{0}':{1}...".format(
+                    manifest.name, index,
+                ),
+            )
+            try:
+                news_path = os.path.join(
+                    news_dir, '{0}-{1}.md'.format(
+                        repository.project, index + 1,
+                    ),
+                )
+            except (TypeError, AttributeError, BytesWarning) as news_path_error:
+                logging.error(
+                    "Failed to define path for news '{0}':{1}:\n{2}".format(
+                        manifest.name, index, news_path_error,
+                    ),
+                )
+                continue
+            logging.info(
+                "Writing news '{0}':{1} to '{2}'...".format(
+                    manifest.name, index, news_path,
+                ),
+            )
+            try:
+                news.dump(news_path)
+            except ValidationError as news_dump_error:
+                logging.error(
+                    "Failed to write news '{0}':{1} to '{2}':\n{3}".format(
+                        manifest.name, index, news_path, news_dump_error,
+                    ),
+                )
+                continue
