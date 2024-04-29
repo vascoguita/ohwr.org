@@ -9,14 +9,16 @@ import logging
 import os
 import sys
 
+from category import CategoryGenerator
 from config import Config
-from content import Category, News, Project
 from description import Description
 from license import SpdxLicenseList
 from manifest import Manifest
 from news import NewsList
 from pydantic import ValidationError
 from repository import Repository
+
+from hugo import News, Project
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -45,83 +47,12 @@ except (ValidationError, ValueError) as spdx_error:
     )
     sys.exit(1)
 
-if config.categories:
-    for category_config in config.categories:
-        logging.debug(
-            "Defining category directory for '{0}'...".format(
-                category_config.name,
-            ),
-        )
-        try:
-            category_dir = os.path.join(
-                config.sources,
-                'content/categories',
-                category_config.name.lower().replace(' ', '-'),
-            )
-        except (TypeError, AttributeError, BytesWarning) as category_dir_error:
-            logging.error(
-                "Failed to define category directory for '{0}':\n{1}".format(
-                    category_dir_error, category_config.name,
-                ),
-            )
-            sys.exit(1)
-
-        logging.debug("Creating '{0}' directory...".format(category_dir))
-        try:
-            os.makedirs(category_dir)
-        except OSError as make_category_dir_error:
-            logging.error(
-                "Failed to create '{0}' directory:\n{1}".format(
-                    category_dir, make_category_dir_error,
-                ),
-            )
-            sys.exit(1)
-
-        logging.info(
-            "Generating the '{0}' category...".format(category_config.name),
-        )
-        try:
-            category = Category(
-                title=category_config.name,
-                description=category_config.description,
-            )
-        except ValidationError as category_error:
-            logging.error(
-                "Failed to generate the '{0}' category:\n{1}".format(
-                    category_config.name, category_error,
-                ),
-            )
-            sys.exit(1)
-
-        logging.debug(
-            "Defining category path for '{0}'...".format(category.title),
-        )
-        try:
-            category_path = os.path.join(category_dir, '_index.md')
-        except (
-            TypeError, AttributeError, BytesWarning,
-        ) as category_path_error:
-            logging.error(
-                "Failed to define category path for '{0}':\n{1}".format(
-                    category.title, category_path_error,
-                ),
-            )
-            sys.exit(1)
-
-        logging.info(
-            "Writing category '{0}' to '{1}'...".format(
-                category.title, category_path,
-            ),
-        )
-        try:
-            category.dump(category_path)
-        except ValidationError as category_dump_error:
-            logging.error(
-                "Failed to write content for '{0}' to '{1}':\n{2}".format(
-                    category.title, category_path, category_dump_error,
-                ),
-            )
-            sys.exit(1)
+logging.info('Generating categories...')
+try:
+    CategoryGenerator(config.categories).dump(config.sources)
+except (ValueError, ValidationError) as category_error:
+    logging.error('Failed to generate categories:\n{1}'.format(category_error))
+    sys.exit(1)
 
 logging.debug('Defining content directory for projects...')
 try:
@@ -277,7 +208,7 @@ for project_config in config.projects:
             "Loading newsfeed from '{0}'...".format(manifest.newsfeed),
         )
         try:
-            news_list = NewsList.from_url(manifest.newsfeed)
+            news_list = NewsList.from_url(str(manifest.newsfeed))
         except (ValidationError, ValueError) as newsfeed_error:
             logging.error(
                 "Failed to load newsfeed from '{0}':\n{1}".format(

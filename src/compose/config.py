@@ -7,6 +7,7 @@
 
 from typing import Annotated, Optional
 
+from category import CategoryList
 from pydantic import (
     DirectoryPath,
     EmailStr,
@@ -30,16 +31,6 @@ class Contact(BaseModelForbidExtra):
     email: EmailStr
 
 
-class Category(BaseModelForbidExtra):
-    """Category configuration schema."""
-
-    name: AnnotatedStr
-    description: AnnotatedStr
-
-
-CategoryList = Annotated[list[Category], Field(min_length=1)]
-
-
 class Project(BaseModelForbidExtra):
     """Project configuration schema."""
 
@@ -57,7 +48,7 @@ class Config(YamlSchema):
 
     sources: DirectoryPath
     licenses: FilePath
-    categories: Optional[CategoryList] = None
+    categories: CategoryList
     projects: ProjectList
 
     @model_validator(mode='after')

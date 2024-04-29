@@ -21,7 +21,6 @@ from pydantic_utils import (
     SerializableUrlList,
 )
 
-
 class Hugo(BaseModelForbidExtra):
     """Hugo content."""
 
@@ -114,7 +113,7 @@ class News(BaseModelForbidExtra):
     date: datetime.date
     images: Optional[SerializableUrlList] = None
     topics: AnnotatedStrList
-    description: AnnotatedStr = None
+    description: AnnotatedStr
 
     @validate_call
     def dump(self, path: NewPath):
