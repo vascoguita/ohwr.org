@@ -32,7 +32,7 @@ class Category(BaseModelForbidExtra):
         Returns:
             str: Hugo content string.
         """
-        return '---\ntitle: {0}---\n{1}'.format(self.name, self.description)
+        return '---\ntitle: {0}\n---\n{1}'.format(self.name, self.description)
 
     @validate_call
     def dump(self, path: Path):

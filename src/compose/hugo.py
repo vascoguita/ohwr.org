@@ -88,24 +88,6 @@ class Project(BaseModelForbidExtra):
         Hugo(front_matter=front_matter, markdown=markdown).dump(path)
 
 
-class Category(BaseModelForbidExtra):
-    """Category content."""
-
-    title: AnnotatedStr
-    description: AnnotatedStr
-
-    @validate_call
-    def dump(self, path: NewPath):
-        """
-        Write content to a file.
-
-        Parameters:
-            path: The file path where the category content will be saved.
-        """
-        front_matter = self.model_dump(include={'title'})
-        Hugo(front_matter=front_matter, markdown=self.description).dump(path)
-
-
 class News(BaseModelForbidExtra):
     """News content."""
 

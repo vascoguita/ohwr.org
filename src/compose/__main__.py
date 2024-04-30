@@ -50,8 +50,8 @@ except (ValidationError, ValueError) as spdx_error:
 logging.info('Generating categories...')
 try:
     CategoryGenerator(config.categories).dump(config.sources)
-except (ValueError, ValidationError) as category_error:
-    logging.error('Failed to generate categories:\n{1}'.format(category_error))
+except (ValidationError, ValueError) as category_error:
+    logging.error('Failed to generate categories:\n{0}'.format(category_error))
     sys.exit(1)
 
 logging.debug('Defining content directory for projects...')
@@ -227,7 +227,7 @@ for project_config in config.projects:
                     topics=[manifest.name],
                     description=news_item.description,
                 )
-            except ValidationError as news_error:
+            except (ValidationError, ValueError) as news_error:
                 logging.error(
                     "Failed to generate news for '{0}':\n{1}".format(
                         manifest.name, news_error,
