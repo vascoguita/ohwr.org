@@ -39,31 +39,23 @@ class Category(BaseModelForbidExtra):
         Raises:
             ValueError: if dumping the Hugo content fails.
         """
+        category_dir = os.path.join(
+            sources, 'content/categories', self.name.lower().replace(' ', '-'),
+        )
         try:
-            path = os.path.join(
-                sources,
-                'content/categories',
-                self.name.lower().replace(' ', '-'),
-                '_index.md',
-            )
-        except (TypeError, AttributeError, BytesWarning) as join_error:
-            raise ValueError('Failed to define path:\n{0}'.format(join_error))
-        dirname = os.path.dirname(path)
-        try:
-            os.makedirs(dirname)
+            os.makedirs(category_dir)
         except OSError as makedirs_error:
-            raise ValueError(
-                "Failed to create '{0}' directory:\n{1}".format(
-                    dirname, makedirs_error,
-                ),
-            )
+            raise ValueError("Failed to create '{0}' directory:\n{1}".format(
+                category_dir, makedirs_error,
+            ))
+        path = os.path.join(category_dir, '_index.md')
         try:
             with open(path, 'w') as category_file:
                 category_file.write(self.hugo())
         except OSError as open_error:
-            raise ValueError(
-                "Failed to write file '{0}':\n{1}".format(path, open_error),
-            )
+            raise ValueError("Failed to write file '{0}':\n{1}".format(
+                path, open_error,
+            ))
 
 
 CategoryList = Annotated[list[Category], Field(min_length=1)]

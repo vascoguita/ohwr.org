@@ -4,7 +4,6 @@
 
 """Custom Pydantic utilities."""
 
-import logging
 from http import HTTPMethod, HTTPStatus
 from typing import Annotated
 from urllib import request
@@ -61,11 +60,9 @@ class YamlSchema(BaseModelForbidExtra):
         try:
             return cls(**yaml_dict)
         except (ValidationError, TypeError) as construct_error:
-            raise ValueError(
-                'Failed to initialize YamlSchema:\n{0}'.format(
-                    construct_error,
-                ),
-            )
+            raise ValueError('Failed to initialize YamlSchema:\n{0}'.format(
+                construct_error,
+            ))
 
 
 def serialize(url: HttpUrl) -> str:
@@ -98,16 +95,15 @@ def is_reachable(url: HttpUrl) -> HttpUrl:
     Raises:
         ValueError: if the URL is not reachable.
     """
-    logging.debug("Checking if '{0}' is reachable...".format(url))
     req = request.Request(url, method=HTTPMethod.HEAD)
     try:
         with request.urlopen(req, timeout=5) as res:  # noqa: S310
             if res.status != HTTPStatus.OK:
                 raise ValueError("Status code: '{0}'.".format(res.status))
     except (URLError, ValueError, TimeoutError) as urlopen_error:
-        raise ValueError(
-            "Failed to access URL '{0}':\n{1}".format(url, urlopen_error),
-        )
+        raise ValueError("Failed to access URL '{0}':\n{1}".format(
+            url, urlopen_error,
+        ))
     return url
 
 

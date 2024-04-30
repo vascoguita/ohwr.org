@@ -88,11 +88,9 @@ class Repository(BaseModelForbidExtra, ABC):
         try:
             return self._split()[0]
         except IndexError as owner_error:
-            raise ValueError(
-                "Failed to parse owner from '{0}':\n{1}".format(
-                    self.url, owner_error,
-                ),
-            )
+            raise ValueError("Failed to parse owner from '{0}':\n{1}".format(
+                self.url, owner_error,
+            ))
 
     @computed_field
     def project(self) -> str:
@@ -149,11 +147,9 @@ class GitHubRepository(Repository):
             with request.urlopen(req, timeout=5) as response:  # noqa: S310
                 return response.read().decode()
         except (URLError, ValueError, TimeoutError) as url_error:
-            raise ConnectionError(
-                "Failed to request '{0}':\n{1}".format(
-                    req.full_url, url_error,
-                ),
-            )
+            raise ConnectionError("Failed to request '{0}':\n{1}".format(
+                req.full_url, url_error,
+            ))
 
 
 class GenericRepository(Repository):
@@ -182,15 +178,13 @@ class GenericRepository(Repository):
                 shell=True,  # noqa: S602
             )
         except subprocess.CalledProcessError as clone_error:
-            raise RuntimeError(
-                "Failed to clone '{0}':\n{1}".format(self.url, clone_error),
-            )
+            raise RuntimeError("Failed to clone '{0}':\n{1}".format(
+                self.url, clone_error,
+            ))
         try:
             with open(os.path.join(tmpdir, filepath), 'r') as repository_file:
                 return repository_file.read()
         except FileNotFoundError as file_error:
-            raise ValueError(
-                "File '{0}' not found in '{1}':\n{2}".format(
-                    filepath, self.url, file_error,
-                ),
-            )
+            raise ValueError("File '{0}' not found in '{1}':\n{2}".format(
+                filepath, self.url, file_error,
+            ))

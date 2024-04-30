@@ -59,9 +59,9 @@ class Description(UserString):
         try:
             md = re.sub('<!--(.*?)-->', '', md, flags=re.DOTALL).strip()
         except (re.error, TypeError) as re_error:
-            raise ValueError(
-                'Failed to process Markdown:\n{0}'.format(re_error),
-            )
+            raise ValueError('Failed to process Markdown:\n{0}'.format(
+                re_error,
+            ))
         while md.startswith('#'):
             try:
                 md = md.split('\n', 1)[1].strip()
@@ -74,6 +74,6 @@ class Description(UserString):
         try:
             return cls(md.split('\n#')[0].strip())
         except ValidationError as validation_error:
-            raise ValueError(
-                'Description is not valid:\n{0}'.format(validation_error),
-            )
+            raise ValueError('Description is not valid:\n{0}'.format(
+                validation_error,
+            ))

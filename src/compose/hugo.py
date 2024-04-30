@@ -5,7 +5,6 @@
 """Compose Hugo content."""
 
 
-import datetime
 from typing import Optional
 
 import yaml
@@ -90,26 +89,3 @@ class Project(BaseModelForbidExtra):
             '{{{{< latest-news >}}}}'
         ).format(self.description)
         Hugo(front_matter=front_matter, markdown=markdown).dump(path)
-
-
-class News(BaseModelForbidExtra):
-    """News content."""
-
-    title: AnnotatedStr
-    date: datetime.date
-    images: Optional[SerializableUrlList] = None
-    topics: AnnotatedStrList
-    description: AnnotatedStr
-
-    @validate_call
-    def dump(self, path: NewPath):
-        """
-        Write content to a file.
-
-        Parameters:
-            path: The file path where the news content will be saved.
-        """
-        front_matter = self.model_dump(
-            exclude_none=True, exclude={'description'},
-        )
-        Hugo(front_matter=front_matter, markdown=self.description).dump(path)

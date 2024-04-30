@@ -44,9 +44,9 @@ class SpdxLicenseList(UserDict):
         try:
             return cls(json.loads(licenses_json))
         except (TypeError, json.JSONDecodeError) as json_error:
-            raise ValueError(
-                'Failed to load JSON license list:\n{0}'.format(json_error),
-            )
+            raise ValueError('Failed to load JSON license list:\n{0}'.format(
+                json_error,
+            ))
 
     @classmethod
     @validate_call
@@ -99,6 +99,6 @@ class SpdxLicenseList(UserDict):
                             license_id, license_error,
                         ),
                     )
-        raise ValueError(
-            "Unknown SPDX license identifier '{0}'.".format(license_id),
-        )
+        raise ValueError("Unknown SPDX license identifier '{0}'.".format(
+            license_id,
+        ))
