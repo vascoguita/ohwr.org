@@ -4,8 +4,8 @@
 
 """Custom Pydantic utilities."""
 
-from http import HTTPMethod, HTTPStatus
 import logging
+from http import HTTPMethod, HTTPStatus
 from typing import Annotated
 from urllib import request
 from urllib.error import URLError

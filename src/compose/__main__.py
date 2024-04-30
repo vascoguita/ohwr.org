@@ -9,7 +9,6 @@ import logging
 import os
 import sys
 
-from category import CategoryGenerator
 from config import Config
 from description import Description
 from license import SpdxLicenseList
@@ -47,20 +46,25 @@ except (ValidationError, ValueError) as spdx_error:
     )
     sys.exit(1)
 
-logging.info('Generating categories...')
-try:
-    CategoryGenerator(config.categories).dump(config.sources)
-except (ValidationError, ValueError) as category_error:
-    logging.error('Failed to generate categories:\n{0}'.format(category_error))
-    sys.exit(1)
+for category in config.categories:
+    logging.info("Generating the '{0}' category...".format(category.name))
+    try:
+        category.dump(config.sources)
+    except (ValueError, ValidationError) as category_error:
+        logging.error(
+            "Failed to generate the '{0}' category:\n{1}".format(
+                category.name, category_error,
+            ),
+        )
+        sys.exit(1)
 
 logging.debug('Defining content directory for projects...')
 try:
     projects_dir = os.path.join(config.sources, 'content/projects')
-except (TypeError, AttributeError, BytesWarning) as projects_path_error:
+except (TypeError, AttributeError, BytesWarning) as projects_dir_error:
     logging.error(
         'Failed to define content directory for projects:\n{0}'.format(
-            projects_path_error,
+            projects_dir_error,
         ),
     )
     sys.exit(1)
@@ -68,10 +72,10 @@ except (TypeError, AttributeError, BytesWarning) as projects_path_error:
 logging.debug("Creating '{0}' directory...".format(projects_dir))
 try:
     os.makedirs(projects_dir)
-except OSError as projects_dir_error:
+except OSError as projects_makedirs_error:
     logging.error(
         "Failed to create '{0}' directory:\n{1}".format(
-            projects_dir, projects_dir_error,
+            projects_dir, projects_makedirs_error,
         ),
     )
     sys.exit(1)
@@ -245,7 +249,9 @@ for project_config in config.projects:
                         repository.project, index + 1,
                     ),
                 )
-            except (TypeError, AttributeError, BytesWarning) as news_path_error:
+            except (
+                TypeError, AttributeError, BytesWarning,
+            ) as news_path_error:
                 logging.error(
                     "Failed to define path for news '{0}':{1}:\n{2}".format(
                         manifest.name, index, news_path_error,
@@ -265,4 +271,3 @@ for project_config in config.projects:
                         manifest.name, index, news_path, news_dump_error,
                     ),
                 )
-                continue

@@ -21,6 +21,7 @@ from pydantic_utils import (
     SerializableUrlList,
 )
 
+
 class Hugo(BaseModelForbidExtra):
     """Hugo content."""
 
@@ -34,6 +35,9 @@ class Hugo(BaseModelForbidExtra):
 
         Parameters:
             path: The file path where the content will be saved.
+
+        Raises:
+            ValueError: If the content cannot be written to a file.
         """
         try:
             front_matter = yaml.safe_dump(self.front_matter)

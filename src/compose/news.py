@@ -7,13 +7,11 @@
 import datetime
 import re
 from collections import UserList, UserString
-from typing import Optional
 from urllib import request
 from urllib.error import URLError
 
 from pydantic import TypeAdapter, ValidationError
-
-from pydantic_utils import AnnotatedStr, AnnotatedStrList, ReachableUrlList
+from pydantic_utils import ReachableUrlList
 
 
 class News(UserString):
