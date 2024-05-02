@@ -5,46 +5,14 @@
 """Load configuration."""
 
 
-from typing import Annotated, Optional
-
 from category import CategoryList
-from pydantic import (
-    DirectoryPath,
-    EmailStr,
-    Field,
-    FilePath,
-    HttpUrl,
-    model_validator,
-)
-from pydantic_utils import (
-    AnnotatedStr,
-    AnnotatedStrList,
-    BaseModelForbidExtra,
-    YamlSchema,
-)
-
-
-class Contact(BaseModelForbidExtra):
-    """Contact configuration schema."""
-
-    name: AnnotatedStr
-    email: EmailStr
-
-
-class Project(BaseModelForbidExtra):
-    """Project configuration schema."""
-
-    repository: HttpUrl
-    contact: Contact
-    featured: Optional[bool] = False
-    categories: Optional[AnnotatedStrList] = None
-
-
-ProjectList = Annotated[list[Project], Field(min_length=1)]
+from project import ProjectList
+from pydantic import DirectoryPath, FilePath, model_validator
+from pydantic_utils import YamlSchema
 
 
 class Config(YamlSchema):
-    """Main configuration schema."""
+    """Configuration schema."""
 
     sources: DirectoryPath
     licenses: FilePath
