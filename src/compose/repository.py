@@ -7,6 +7,7 @@
 import os
 import subprocess  # noqa: S404
 from abc import ABC, abstractmethod
+from functools import cached_property
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib import request
@@ -68,6 +69,7 @@ class Repository(BaseModelForbidExtra, ABC):
                 )
 
     @computed_field
+    @cached_property
     def owner(self) -> str:
         """
         Retrieve the owner from the repository URL.
@@ -86,6 +88,7 @@ class Repository(BaseModelForbidExtra, ABC):
             ))
 
     @computed_field
+    @cached_property
     def project(self) -> str:
         """
         Retrieve the project name from the repository URL.

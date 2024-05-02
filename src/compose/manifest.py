@@ -33,7 +33,7 @@ class Manifest(YamlSchema):
     """Manifest schema."""
 
     version: Literal['1.0.0']
-    name: AnnotatedStr
+    name: AnnotatedStr = Field(serialization_alias='title')
     description: HttpUrl
     website: ReachableUrl
     licenses: AnnotatedStrList

@@ -5,10 +5,11 @@
 """Load configuration."""
 
 
-from category import CategoryList
-from project import ProjectList
-from pydantic import DirectoryPath, FilePath, model_validator
+from category import Category
+from project import Project
+from pydantic import DirectoryPath, Field, FilePath, model_validator
 from pydantic_utils import YamlSchema
+from typing_extensions import Annotated
 
 
 class Config(YamlSchema):
@@ -16,8 +17,8 @@ class Config(YamlSchema):
 
     sources: DirectoryPath
     licenses: FilePath
-    categories: CategoryList
-    projects: ProjectList
+    categories: Annotated[list[Category], Field(min_length=1)]
+    projects: Annotated[list[Project], Field(min_length=1)]
 
     @model_validator(mode='after')
     def check_categories_match(self):

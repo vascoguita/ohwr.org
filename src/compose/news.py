@@ -5,33 +5,28 @@
 """Load news."""
 
 import datetime
-import os
 import re
+from collections import UserList
 from urllib import request
 from urllib.error import URLError
 
 import yaml
 from pydantic import (
-    DirectoryPath,
     HttpUrl,
+    NewPath,
     TypeAdapter,
     ValidationError,
     computed_field,
     validate_call,
 )
-from pydantic_utils import (
-    AnnotatedStr,
-    AnnotatedStrList,
-    BaseModelForbidExtra,
-    ReachableUrlList,
-)
+from pydantic_utils import AnnotatedStr, AnnotatedStrList, BaseModelForbidExtra, ReachableUrlList
 
 
 class News(BaseModelForbidExtra):
     """Project news."""
 
-    newsfeed: AnnotatedStrList
     md: AnnotatedStr
+    newsfeed: AnnotatedStrList
 
     @computed_field
     def title(self) -> str:
@@ -143,21 +138,37 @@ class News(BaseModelForbidExtra):
             ))
         return '---\n{0}---\n{1}'.format(front_matter, self.description)
 
+    @validate_call
+    def dump(self, path: NewPath):
+        """
+        Dump Hugo content.
 
-class Newsfeed(BaseModelForbidExtra):
+        Parameters:
+            path: Hugo content file path for news.
+
+        Raises:
+            ValueError: if dumping the Hugo content fails.
+        """
+        try:
+            with open(path, 'w') as news_file:
+                news_file.write(self.hugo())
+        except OSError as error:
+            raise ValueError("Failed to write file '{0}':\n{1}".format(
+                path, error,
+            ))
+
+
+class Newsfeed(UserList):
     """Project newsfeed."""
 
-    project: AnnotatedStr
-    md: AnnotatedStr
-
     @classmethod
-    def from_url(cls, url: HttpUrl, project: AnnotatedStr):
+    def from_url(cls, url: HttpUrl, project: str):
         """
         Load newsfeed from a URL.
 
         Parameters:
             url: Newsfeed URL.
-            project: project name.
+            project: project identifier string.
 
         Returns:
             Newsfeed object.
@@ -167,65 +178,39 @@ class Newsfeed(BaseModelForbidExtra):
         """
         try:
             with request.urlopen(str(url), timeout=5) as res:  # noqa: S310
-                return cls(project=project, md=res.read().decode('utf-8'))
+                return cls.from_md(res.read().decode('utf-8'), project)
         except (URLError, ValueError, TimeoutError) as urlopen_error:
             raise ValueError("Failed to load newsfeed from '{0}':\n{1}".format(
                 url, urlopen_error,
             ))
 
-    @computed_field
-    def news(self) -> list[News]:
+    @classmethod
+    def from_md(cls, md: str, project: str):
         """
         Get news from the Markdown.
 
+        Parameters:
+            md: Newsfeed Markdown string.
+            project: project identifier string.
+
         Returns:
-            list[News]: list of news.
+            Newsfeed object.
 
         Raises:
             ValueError: If the news cannot be parsed from the Markdown.
         """
         try:
-            matches = re.findall(r'(## .+?)(?=\n## |$)', self.md, re.DOTALL)
+            matches = re.findall(r'(## .+?)(?=\n## |$)', md, re.DOTALL)
         except (re.error, TypeError) as re_error:
-            raise ValueError(
-                'Failed to process Markdown:\n{0}'.format(re_error),
-            )
-        news_list = []
+            raise ValueError('Failed to process Markdown:\n{0}'.format(
+                re_error,
+            ))
+        newsfeed = []
         for match in matches:
             try:
-                news_list.append(News(newsfeed=[self.project], md=match))
+                newsfeed.append(News(md=match, newsfeed=[project]))
             except (ValidationError, ValueError) as news_error:
-                raise ValueError(
-                    'Failed to load news:\n{0}'.format(news_error),
-                )
-        return news_list
-
-    @validate_call
-    def dump(self, news_dir: DirectoryPath):
-        """
-        Dump Hugo content.
-
-        Parameters:
-            news_dir: Hugo content directory for news.
-
-        Raises:
-            ValueError: if dumping the Hugo content fails.
-        """
-        for index, news in enumerate(self.news):
-            try:
-                path = os.path.join(
-                    news_dir, '{0}-{1}.md'.format(self.project, index + 1),
-                )
-            except (TypeError, AttributeError, BytesWarning) as join_error:
-                raise ValueError(
-                    'Failed to define path:\n{0}'.format(join_error),
-                )
-            try:
-                with open(path, 'w') as news_file:
-                    news_file.write(news.hugo())
-            except OSError as open_error:
-                raise ValueError(
-                    "Failed to write file '{0}':\n{1}".format(
-                        path, open_error,
-                    ),
-                )
+                raise ValueError('Failed to load news:\n{0}'.format(
+                    news_error,
+                ))
+        return cls(newsfeed)

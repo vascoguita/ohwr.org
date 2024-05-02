@@ -6,9 +6,8 @@
 
 
 import os
-from typing import Annotated
 
-from pydantic import DirectoryPath, Field, validate_call
+from pydantic import DirectoryPath, validate_call
 from pydantic_utils import AnnotatedStr, BaseModelForbidExtra
 
 
@@ -56,6 +55,3 @@ class Category(BaseModelForbidExtra):
             raise ValueError("Failed to write file '{0}':\n{1}".format(
                 path, open_error,
             ))
-
-
-CategoryList = Annotated[list[Category], Field(min_length=1)]

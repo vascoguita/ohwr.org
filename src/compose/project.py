@@ -5,23 +5,29 @@
 """Project utilities."""
 
 
+import os
 import re
 from functools import cached_property
-from typing import Annotated, List, Optional
+from typing import Optional
 from urllib import request
 from urllib.error import URLError
 
+import yaml
 from license import License, SpdxLicenseList
 from manifest import Manifest
 from pydantic import (
+    DirectoryPath,
     EmailStr,
-    Field,
-    HttpUrl,
     ValidationError,
     computed_field,
     validate_call,
 )
-from pydantic_utils import AnnotatedStr, AnnotatedStrList, BaseModelForbidExtra
+from pydantic_utils import (
+    AnnotatedStr,
+    AnnotatedStrList,
+    BaseModelForbidExtra,
+    SerializableUrl,
+)
 from repository import Repository
 
 
@@ -35,16 +41,37 @@ class Contact(BaseModelForbidExtra):
 class Project(BaseModelForbidExtra):
     """Project configuration schema."""
 
-    repository: HttpUrl
+    repository: SerializableUrl
     contact: Contact
     featured: Optional[bool] = False
     categories: Optional[AnnotatedStrList] = None
 
     @computed_field
     @cached_property
+    def id(self) -> str:
+        """
+        Get project identifier.
+
+        Returns:
+            str: project identifier.
+
+        Raises:
+            ValueError: If defining the project identifier fails.
+        """
+        try:
+            return Repository.create(self.repository).project
+        except (ValidationError, ValueError) as repository_error:
+            raise ValueError(
+                "Failed to define project id from '{0}':\n{1}".format(
+                    self.repository, repository_error,
+                ),
+            )
+
+    @computed_field
+    @cached_property
     def manifest(self) -> Manifest:
         """
-        Get manifest from repository.
+        Get manifest.
 
         Returns:
             Manifest: project manifest.
@@ -71,7 +98,7 @@ class Project(BaseModelForbidExtra):
     @cached_property
     def description(self) -> str:
         """
-        Get manifest from repository.
+        Get description.
 
         Returns:
             str: description string.
@@ -103,24 +130,22 @@ class Project(BaseModelForbidExtra):
 
     @computed_field
     @cached_property
-    def licenses(self) -> List[License]:
+    def licenses(self) -> list[License]:
         """
-        Get licenses from SPDX license list data.
+        Get licenses.
 
         Returns:
-             List[License]: license list.
+            list[License]: license list.
 
         Raises:
-            ValueError: If loading the license list fails.
+            ValueError: If loading the licenses fails.
         """
         licenses = []
         try:
             for license_id in self.manifest.licenses:
                 licenses.append(SpdxLicenseList.get_license(license_id))
-        except (ValidationError, ValueError) as license_error:
-            raise ValueError('Failed to load licenses:\n{0}'.format(
-                license_error,
-            ))
+        except (ValidationError, ValueError) as error:
+            raise ValueError('Failed to load licenses:\n{0}'.format(error))
         return licenses
 
     @validate_call
@@ -130,18 +155,42 @@ class Project(BaseModelForbidExtra):
 
         Returns:
             str: Hugo content string.
+
+        Raises:
+            ValueError: If generating the Hugo content fails.
         """
-        
+        front_matter = self.model_dump(exclude_none=True, exclude={
+            'id', 'manifest', 'description',
+        })
+        front_matter.update(self.manifest.model_dump(
+            exclude_none=True,
+            by_alias=True,
+            exclude={'version', 'description', 'licenses', 'newsfeed'},
+        ))
         try:
-            front_matter = yaml.safe_dump(self.model_dump(
-                exclude_none=True, exclude={'md', 'description'},
-            ))
-        except yaml.YAMLError as yaml_error:
-            raise ValueError('Failed to dump YAML front matter:\n{0}'.format(
-                yaml_error,
-            ))
-        return '---\n{0}---\n{1}'.format(front_matter, self.description)
-        return '---\ntitle: {0}\n---\n{1}'.format(self.name, self.description)
+            return (
+                '---\n{0}---\n{{{{< project >}}}}\n' +
+                '{1}\n{{{{< /project >}}}}\n{{{{< latest-news >}}}}'
+            ).format(yaml.safe_dump(front_matter), self.description)
+        except yaml.YAMLError as error:
+            raise ValueError('Failed to dump YAML:\n{0}'.format(error))
 
+    @validate_call
+    def dump(self, proj_dir: DirectoryPath):
+        """
+        Dump Hugo content.
 
-ProjectList = Annotated[list[Project], Field(min_length=1)]
+        Parameters:
+            proj_dir: Hugo content directory for projects.
+
+        Raises:
+            ValueError: if dumping the Hugo content fails.
+        """
+        path = os.path.join(proj_dir, '{0}.md'.format(self.id))
+        try:
+            with open(path, 'w') as project_file:
+                project_file.write(self.hugo())
+        except OSError as error:
+            raise ValueError("Failed to write file '{0}':\n{1}".format(
+                path, error,
+            ))
