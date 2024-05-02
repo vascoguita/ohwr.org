@@ -9,17 +9,10 @@ import subprocess  # noqa: S404
 from abc import ABC, abstractmethod
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Annotated
 from urllib import request
 from urllib.error import URLError
 
-from pydantic import (
-    AfterValidator,
-    HttpUrl,
-    ValidationError,
-    computed_field,
-    validate_call,
-)
+from pydantic import HttpUrl, ValidationError, computed_field, validate_call
 from pydantic_utils import BaseModelForbidExtra
 
 
@@ -115,9 +108,6 @@ class Repository(BaseModelForbidExtra, ABC):
     def _split(self) -> list[str]:
         path = self.url.path.removeprefix('/')
         return list(filter(None, path.split('/', 1)))
-
-
-AnnotatedRepository = Annotated[HttpUrl, AfterValidator(Repository.create)]
 
 
 class GitHubRepository(Repository):
