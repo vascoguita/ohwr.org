@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2024 CERN (home.cern)
 
 SPDX-License-Identifier: BSD-3-Clause
 -->
-{{ with .Site.Taxonomies.newsfeeds.Get .Page.File.BaseFileName }}
+{{ with .Site.Taxonomies.newsfeeds.Get .Page.Params.id }}
 <h3 class="text-center">Latest News</h3>
-<div class="latest-news">
+<div class="cards-section">
   {{ range (first 3 .Pages) }}
   <div class="card interactive-card border-0 shadow-lg mb-4">
     {{ if .Params.images }}
