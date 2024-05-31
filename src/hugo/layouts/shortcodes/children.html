@@ -5,18 +5,24 @@ SPDX-License-Identifier: BSD-3-Clause
 -->
 {{ with .Site.Taxonomies.parents.Get .Page.Params.id }}
 <h3 class="text-center">Child Projects</h3>
-<div class="row cards-section">
+<div class="cards-section">
   {{ range .Pages }}
-  <div class="col-lg-4 col-sm-6 mb-5">
-    <div class="card interactive-card shadow-lg border-0 h-100">
-      {{ with .Params.images }}
-      <img src="{{ index . 0  | relURL }}" class="card-img-top" style="aspect-ratio: 4 / 3;">
-      {{ end }}
-      <div class="card-body d-flex flex-column p-3">
-        <h4><a href="{{ .Permalink }}" title="{{ .Title }}" class="stretched-link post-title">{{ .Title }}</a></h4>
-        <p class="card-text">{{ .Summary }}</p>
+  <div class="card interactive-card border-0 shadow-lg mb-4">
+    {{ if .Params.images }}
+    <div class="row">
+      <div class="col-md-3">
+        <img src="{{ index .Params.images 0 | relURL }}" class="m-3 w-100 mh-100 rounded">
+      </div>
+      <div class="col-md-9 p-0">
+    {{ end }}
+        <div class="card-body">
+          <h4><a href="{{ .Permalink }}" title="{{ .Title }}" class="stretched-link post-title">{{ .Title }}</a></h4>
+          <p class="card-text">{{ .Summary }}</p>
+        </div>
+    {{ if .Params.images }}
       </div>
     </div>
+    {{ end }}
   </div>
   {{ end }}
 </div>
