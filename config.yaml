@@ -6,10 +6,6 @@
 sources: './src/hugo'
 licenses: './third_party/spdx/license-list-data/json/licenses.json'
 categories:
-  - name: 'FMC Carriers'
-    description: 'Boards that connect FMC Modules'
-  - name: 'FMC Modules'
-    description: 'FPGA Mezzanine Cards'
   - name: 'WR Switch'
     description: 'White Rabbit Switch - multiport WR L2 Ethernet switch'
   - name: 'WR Node'
@@ -28,6 +24,13 @@ categories:
     description: 'Gateware that can be used with WR Node'
   - name: 'WR documentation'
     description: 'Documentation applicable to WR'
+  - name: 'FMC'
+    description: 'Boards and modules using the FMC standard'
+    subcategories:
+      - name: 'FMC Carriers'
+        description: 'Boards that connect FMC Modules'
+      - name: 'FMC Modules'
+        description: 'FPGA Mezzanine Cards'
 redirects:
   - source: |
       project/cernohl/-/wikis/uploads/819d71bea3458f71fba6cf4fb0f2de6b/cern_ohl_s_v2.txt

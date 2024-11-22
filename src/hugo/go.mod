@@ -7,6 +7,6 @@ module github.com/OHWR/ohwr.org
 go 1.22.9
 
 require (
-	github.com/OHWR/bigspring-light-hugo v0.0.0-20231010131849-0a0f5d6a3253 // indirect
 	github.com/gethugothemes/hugo-modules/search v0.0.0-20240711030223-49ae4a26e064 // indirect
+	github.com/vascoguita/bigspring-light-hugo v0.0.0-20241122133140-f4027ada3a4f // indirect
 )

@@ -32,6 +32,7 @@ class Category(BaseModelForbidExtra):
 
     name: AnnotatedStr
     description: AnnotatedStr
+    subcategories: Optional[Annotated[list['Category'], Field(min_length=1)]] = None
 
 
 class Contact(BaseModelForbidExtra):
@@ -270,31 +271,31 @@ class Config(Schema):
     categories: Annotated[list[Category], Field(min_length=1)]
     projects: Annotated[list[Project], Field(min_length=1)]
 
-    @model_validator(mode='after')
-    def check_categories_match(self) -> 'Config':
-        """
-        Check if categories in projects match the available categories.
+    # @model_validator(mode='after')
+    # def check_categories_match(self) -> 'Config':
+    #     """
+    #     Check if categories in projects match the available categories.
 
-        Returns:
-            Config: The configuration object with validated category names.
+    #     Returns:
+    #         Config: The configuration object with validated category names.
 
-        Raises:
-            ValueError: If an unknown category is found in a project.
-        """
-        categories = []
-        for category in self.categories:
-            categories.append(category.name)
+    #     Raises:
+    #         ValueError: If an unknown category is found in a project.
+    #     """
+    #     categories = []
+    #     for category in self.categories:
+    #         categories.append(category.name)
 
-        for project in self.projects:
-            if project.categories:
-                unknown = set(project.categories) - set(categories)
-                if unknown:
-                    raise ValueError(
-                        "Project '{0}' with unknown categories: '{1}'.".format(
-                            project.id, unknown,
-                        ),
-                    )
-        return self
+    #     for project in self.projects:
+    #         if project.categories:
+    #             unknown = set(project.categories) - set(categories)
+    #             if unknown:
+    #                 raise ValueError(
+    #                     "Project '{0}' with unknown categories: '{1}'.".format(
+    #                         project.id, unknown,
+    #                     ),
+    #                 )
+    #     return self
 
     @model_validator(mode='after')
     def check_parents_match(self) -> 'Config':

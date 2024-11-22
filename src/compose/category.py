@@ -59,6 +59,10 @@ class CategorySection(UserDict[str, Category]):
                     section, category_error,
                 ))
             categories[section] = category
+            if config.subcategories:
+                subcategories = cls.from_config(config.subcategories)
+                for subsection, subcategory in subcategories.items():
+                    categories[os.path.join(section, subsection)] = subcategory
         return cls(categories)
 
     def write(self, path: str) -> None:

@@ -1,4 +1,4 @@
-github.com/OHWR/bigspring-light-hugo v0.0.0-20231010131849-0a0f5d6a3253 h1:fIw6ZCm0UHDESuI7DLHEEhRrP+KZMqBMYLqjtBaoKcs=
-github.com/OHWR/bigspring-light-hugo v0.0.0-20231010131849-0a0f5d6a3253/go.mod h1:vT5EDAVptTP7LdF70/rNyYCUZGDTb1Nui/oZN7Jq7ic=
 github.com/gethugothemes/hugo-modules/search v0.0.0-20240711030223-49ae4a26e064 h1:DzexELdLGnEq4Z7ic810iAqGXH12vP9Ft6sNahRQnoI=
 github.com/gethugothemes/hugo-modules/search v0.0.0-20240711030223-49ae4a26e064/go.mod h1:tmDvLaZCM+QDvS/WLZXNjY1QTdWh7/68D2wIToECbyA=
+github.com/vascoguita/bigspring-light-hugo v0.0.0-20241122133140-f4027ada3a4f h1:hOyefrQ9fzx7NV9XglJyxe8UH5gxaZSaCY5NwToqU9U=
+github.com/vascoguita/bigspring-light-hugo v0.0.0-20241122133140-f4027ada3a4f/go.mod h1:3S6pto6sRPEYxvNCHLPV5WudcunjPUOwdSKkagpQfaQ=
