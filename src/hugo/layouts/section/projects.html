@@ -1,0 +1,32 @@
+{{ define "main" }}
+
+<!--
+SPDX-FileCopyrightText: 2024 CERN (home.cern)
+
+SPDX-License-Identifier: BSD-3-Clause
+-->
+
+{{ partial "page-header.html" . }}
+<section class="section">
+  <div class="container">
+    <div class="input-group mb-5">
+      <div class="input-group-prepend">
+        <select id="searchCategory" class="custom-select">
+          <option value="">All Categories</option>
+          {{ range .Site.Taxonomies.categories }}
+          <option value="{{ .Page.Name }}">{{ .Page.Title }}</option>
+          {{ end }}
+        </select>
+      </div>
+      <input type="text" id="searchInput" class="form-control" placeholder="Search the Open Hardware Reposity">
+      <div class="input-group-append">
+        <button type="button" id="searchButton"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+    <div class="row" id="searchResults"></div>
+  </div>
+</section>
+
+<script src="{{ (resources.Get `js/search.js`).RelPermalink }}" type="module"></script>
+
+{{ end }}
