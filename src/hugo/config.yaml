@@ -6,6 +6,10 @@
 baseURL: 'https://ohwr.org/'
 title: 'Open Hardware Repository'
 summaryLength: 30
+outputs:
+  section:
+    - 'html'
+    - 'json'
 markup:
   highlight:
     codeFences: true
