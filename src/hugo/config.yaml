@@ -70,3 +70,9 @@ params:
     enable: true
     label: 'Submit Project'
     link: 'submit-project/'
+  plugins:
+    js:
+      - link: 'plugins/jQuery/jquery.slim.min.js'
+      - link: 'plugins/bootstrap/bootstrap.min.js'
+      - link: 'plugins/slick/slick.min.js'
+      - link: 'https://cdn.jsdelivr.net/npm/fuse.js@7.0.0'

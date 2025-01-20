@@ -7,12 +7,9 @@ SPDX-License-Identifier: BSD-3-Clause
 -->
 
 {{ partial "page-header.html" . }}
-{{ range .Site.Taxonomies.categories }}
-      <option value="{{ .Page.Name }}">{{ .Page.Title }}</option>
-      {{ end }}
 <section class="section">
   <div class="container">
-    <div class="mb-5">{{ partial "search.html" }}</div>
+    <div class="mb-5">{{ partial "search.html" . }}</div>
     <div class="row">
       {{ range (.Paginate .Data.Pages).Pages }}
       {{ partial "vertical-card.html" . }}

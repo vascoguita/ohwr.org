@@ -20,7 +20,7 @@ SPDX-FileCopyrightText = "2024 CERN (home.cern)"
 SPDX-License-Identifier = "CC-BY-SA-4.0+"
 
 [[annotations]]
-path = "src/hugo/layouts/_default/index.json"
+path = "src/hugo/layouts/_default/section.json"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2024 CERN (home.cern)"
 SPDX-License-Identifier = "BSD-3-Clause"
