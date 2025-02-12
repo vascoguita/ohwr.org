@@ -24,11 +24,11 @@ initializeSearch();
 function initializeSearch() {
   const searchInput = document.getElementById('searchInput');
   const searchButton = document.getElementById('searchButton');
-  const urlParams = new URLSearchParams(window.location.search);
+  const availableTags = document.getElementById('availableTags');
 
-  searchInput.addEventListener('keypress', event => event.key === "Enter" && search());
-  searchButton.addEventListener('click', search);
-  searchInput.value = urlParams.get('q');
+  searchInput.addEventListener('keypress', searchEventListener);
+  searchButton.addEventListener('click', searchEventListener);
+  availableTags.addEventListener('click', tagsEventListener);
 
   fetchData()
     .then(data => {
@@ -48,29 +48,102 @@ async function fetchData() {
 }
 
 function search() {
-  const searchQuery = document.getElementById('searchInput').value.trim();
   const url = new URL(window.location);
+  const query = url.searchParams.get('q');
+  const selectedTags = url.searchParams.getAll('t');
 
-  let searchResults;
+  let results = fuse._docs;
 
-  if (searchQuery) {
-    searchResults = fuse.search(searchQuery).map(result => result.item);
-    url.searchParams.set('q', searchQuery);
-  } else {
-    searchResults = fuse._docs;
-    url.searchParams.delete('q');
+  if (query) {
+    results = fuse.search(query).map(result => result.item);
   }
 
-  window.history.pushState({}, '', url);
-  displayResults([...searchResults].sort((a, b) => b.weight - a.weight));
+  let filteredResults = results;
+
+  if (selectedTags.length) {
+    filteredResults = results.filter(result => result.tags && result.tags.every(tag => selectedTags.includes(tag))); 
+  }
+
+  let sortedResults = [...filteredResults].sort((a, b) => b.weight - a.weight);
+
+  let availableTags = sortedResults.flatMap(result => result.tags || []).filter(tag => !selectedTags.includes(tag));
+
+  console.log(availableTags.reduce((acc, tag) => {
+    acc[tag] = (acc[tag] || 0) + 1;
+    return acc;
+  }, {}));
+
+  displaySearchInput(query);
+  displaySelectedTags(selectedTags);
+  displayAvailableTags(availableTags);
+  displayResults(sortedResults);
+}
+
+function displaySearchInput(query) {
+  document.getElementById('searchInput').value = query;
+}
+
+function displaySelectedTags(tags) {
+  const selectedTags = document.getElementById('selectedTags');
+
+  selectedTags.innerHTML = '';
+  tags.forEach(item => {
+    selectedTags.innerHTML +=
+      `<button type="button" class="selected-tag-button" value="${item}">
+        ${item}
+      </button>`
+  });
+}
+
+function displayAvailableTags(tags) {
+  const availableTags = document.getElementById('availableTags');
+  const tagCounts = Object.values(
+    tags.reduce((acc, tag) => {
+      acc[tag] = acc[tag] || { tag, count: 0 };
+      acc[tag].count++;
+      return acc;
+    }, {})).sort((a, b) => b.count - a.count);
+
+  availableTags.innerHTML = '';
+
+  tagCounts.forEach(item => {
+    availableTags.innerHTML +=
+      `<button type="button" class="available-tag-button" value="${item.tag}">
+        ${item.tag} <span class="badge badge-primary">${item.count}</span>
+      </button>`
+  });
 }
 
 function displayResults(results) {
-  const resultsContainer = document.getElementById('searchResults');
+  const searchResults = document.getElementById('searchResults');
 
-  resultsContainer.innerHTML = results.length ? '' : '<p>No results found.</p>';
+  searchResults.innerHTML = results.length ? '' : '<p>No results found.</p>';
 
   results.forEach(item => {
-    resultsContainer.innerHTML += atob(item.card);
+    searchResults.innerHTML += atob(item.card);
   });
+}
+
+function tagsEventListener(event) {
+    const tag = event.target.getAttribute('value');
+    const url = new URL(window.location);
+  
+    url.searchParams.append('t', tag)
+    window.history.pushState({}, '', url);
+    search();
+}
+
+function searchEventListener(event) {
+  if (event.type === 'keypress' && event.key !== "Enter") return;
+
+  const searchQuery = document.getElementById('searchInput').value.trim();
+  const url = new URL(window.location);
+
+  if (searchQuery) {
+    url.searchParams.set('q', searchQuery);
+  } else {
+    url.searchParams.delete('q');
+  }
+  window.history.pushState({}, '', url);
+  search();
 }

@@ -132,3 +132,31 @@ ul li {
     transform: scale(0.95);
   }
 }
+
+.available-tag-button {
+  background-color: $white;
+  border: 1px solid #007bff;
+  border-radius: 8px;
+  margin: 2px;
+  padding: .375rem .75rem;
+  &:hover {
+    background-color: #007bff;
+    color: $white;
+    .badge-primary {
+      background-color: #f8f9fa;
+      color: #007bff;
+    }
+  }
+}
+
+.selected-tag-button {
+  background-color: #007bff;
+  color: $white;
+  border: 0;
+  border-radius: 8px;
+  margin: 2px;
+  padding: .375rem .75rem;
+  &:hover {
+    background-color: darken(#007bff, 10%);
+  }
+}
