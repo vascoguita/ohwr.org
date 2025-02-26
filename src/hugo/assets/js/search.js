@@ -9,11 +9,13 @@ import Fuse from "https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.mjs";
 const searchScriptElement = document.getElementById("search-script");
 const searchInputElement = document.getElementById("search-input");
 const searchButtonElement = document.getElementById("search-button");
+const searchSuggestionsElement = document.getElementById('search-suggestions');
 const searchFilterMenuElement = document.getElementById("search-filter-menu");
 const searchResultsElement = document.getElementById("search-results");
 const searchPaginationElement = document.getElementById("search-pagination");
 
 let fuse;
+let filterFuse;
 let results;
 const perPage = 9;
 
@@ -35,6 +37,12 @@ async function initializeSearch() {
     threshold: 0,
     keys: JSON.parse(searchScriptElement.dataset.keys),
   });
+
+  const filterData = [...new Set(data.flatMap(item =>
+    item[searchScriptElement.dataset.filter] || []
+  ))];
+
+  filterFuse = new Fuse(filterData);
 
   searchInputElement.addEventListener("keypress", handleSearchInput);
   searchButtonElement.addEventListener("click", handleSearchButton);
@@ -223,6 +231,8 @@ function displayPagination() {
 function handleSearchInput(event) {
   if (event.key === "Enter") {
     updateQuery(event.target.value.trim());
+  } else {
+    
   }
 }
 
@@ -266,3 +276,86 @@ function handlePaginationButton(event) {
   displaySearchResults();
   displayPagination();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  let selectedSuggestionIndex = -1;
+
+  const allSuggestions = [
+    'Apple', 'Banana', 'Cherry', 'Date', 'Elderberry', 'Fig', 'Grape', 'Honeydew'
+  ];
+
+  // Fetch suggestions based on input
+  const getSuggestions = (input) =>
+    allSuggestions.filter(item => item.toLowerCase().includes(input.toLowerCase()));
+
+  // Render suggestions
+  const renderSuggestions = (suggestions) => {
+    suggestionsContainer.innerHTML = suggestions
+      .map((suggestion, index) => `
+        <div class="suggestion-item ${index === selectedSuggestionIndex ? 'selected' : ''}">
+          ${suggestion}
+        </div>
+      `)
+      .join('');
+    suggestionsContainer.style.display = suggestions.length ? 'block' : 'none';
+  };
+
+  // Position suggestions container below the input field
+  const positionSuggestions = () => {
+    const { width, left, bottom } = searchInput.getBoundingClientRect();
+    suggestionsContainer.style.width = `${width}px`;
+    suggestionsContainer.style.left = `${left}px`;
+    suggestionsContainer.style.top = `${bottom}px`;
+  };
+
+  // Handle input events
+  const handleInput = () => {
+    const inputValue = searchInput.value.trim();
+    const suggestions = inputValue ? getSuggestions(inputValue) : [];
+    renderSuggestions(suggestions);
+    positionSuggestions();
+    selectedSuggestionIndex = -1; // Reset selection
+  };
+
+  // Handle keyboard events
+  const handleKeydown = (event) => {
+    const suggestions = suggestionsContainer.querySelectorAll('.suggestion-item');
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestions.length;
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      selectedSuggestionIndex = (selectedSuggestionIndex - 1 + suggestions.length) % suggestions.length;
+    } else if (event.key === 'Enter' && selectedSuggestionIndex >= 0) {
+      event.preventDefault();
+      searchInput.value = suggestions[selectedSuggestionIndex].textContent;
+      suggestionsContainer.innerHTML = '';
+      suggestionsContainer.style.display = 'none';
+      return; // Exit early to avoid re-rendering
+    }
+
+    renderSuggestions(getSuggestions(searchInput.value.trim()));
+  };
+
+  // Handle suggestion clicks
+  const handleSuggestionClick = (event) => {
+    if (event.target.classList.contains('suggestion-item')) {
+      searchInput.value = event.target.textContent;
+      suggestionsContainer.innerHTML = '';
+      suggestionsContainer.style.display = 'none';
+    }
+  };
+
+  // Event listeners
+  searchInput.addEventListener('input', handleInput);
+  searchInput.addEventListener('keydown', handleKeydown);
+  suggestionsContainer.addEventListener('click', handleSuggestionClick);
+  window.addEventListener('resize', positionSuggestions);
+  window.addEventListener('scroll', positionSuggestions);
+  document.addEventListener('click', (event) => {
+    if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+      suggestionsContainer.style.display = 'none';
+    }
+  });
+});
