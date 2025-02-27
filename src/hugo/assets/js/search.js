@@ -138,7 +138,6 @@ function displaySearchFilters(activeFilters, inactiveFilters) {
   });
 }
 
-
 function displayPagination() {
   const url = new URL(window.location);
   const page = parseInt(url.searchParams.get("p")) || 1;
@@ -261,7 +260,7 @@ function displaySuggestions(suggestions) {
   searchSuggestionsElement.innerHTML = "";
   suggestions.forEach(suggestion => {
     const button = document.createElement("button");
-    button.className = "search-suggestion-item row";
+    button.className = "search-suggestion-item row w-100 m-0";
     button.innerText = suggestion;
     button.value = suggestion;
     button.addEventListener("click", handleSuggestionButton);
