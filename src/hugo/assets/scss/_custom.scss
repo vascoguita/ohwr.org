@@ -171,24 +171,5 @@ a.search-filter-button[data-state="active"] {
 }
 
 .search-suggestions {
-  position: absolute;
-  background: $white;
-  border: 1px solid #ddd;
-  border-top: none;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  box-sizing: border-box;
-  display: none;
-}
-
-.search-suggestion-item {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.search-suggestion-item:hover,
-.search-suggestion-item.selected {
-  background-color: #eee;
+  z-index: 10;
 }
