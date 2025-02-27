@@ -17,6 +17,7 @@ const searchPaginationElement = document.getElementById("search-pagination");
 let fuse;
 let filterFuse;
 let results;
+let selectedSuggestionIndex = -1;
 const perPage = 9;
 
 document.addEventListener("DOMContentLoaded", initializeSearch);
@@ -231,10 +232,20 @@ function displayPagination() {
 
 function handleSearchInput(event) {
   const inputValue = event.target.value.trim();
+  const suggestions = inputValue ? filterFuse.search(inputValue).map(({ item }) => item) : [];
   if (event.key === "Enter") {
-    updateQuery(inputValue);
+    if (selectedSuggestionIndex >= 0) {
+      updateFilter(suggestions[selectedSuggestionIndex]);
+    } else {
+      updateQuery(inputValue);
+    }
+  } else if (event.key === "ArrowDown") {
+    selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestions.length;
+    highlightSuggestion(selectedSuggestionIndex);
+  } else if (event.key === "ArrowUp") {
+    selectedSuggestionIndex = (selectedSuggestionIndex - 1 + suggestions.length) % suggestions.length;
+    highlightSuggestion(selectedSuggestionIndex);
   } else {
-    const suggestions = inputValue ? filterFuse.search(inputValue).map(({ item }) => item) : [];
     displaySuggestions(suggestions);
   }
 }
@@ -257,6 +268,7 @@ function updateQuery(query) {
 }
 
 function displaySuggestions(suggestions) {
+  selectedSuggestionIndex = -1;
   searchSuggestionsElement.innerHTML = "";
   suggestions.forEach(suggestion => {
     const button = document.createElement("button");
@@ -266,8 +278,23 @@ function displaySuggestions(suggestions) {
     button.addEventListener("click", handleSuggestionButton);
     searchSuggestionsElement.appendChild(button);
   });
+  if (suggestions) {
+    searchSuggestionsElement.style.display = "block";
+  } else {
+    searchSuggestionsElement.style.display = "none";
+  }
 }
 
+function updateFilter(filter) {
+  const url = new URL(window.location);
+
+  url.searchParams.delete("f");
+  url.searchParams.set("f", filter);
+  url.searchParams.delete("q");
+  url.searchParams.delete("p");
+  window.history.pushState({}, "", url);
+  performSearch();
+}
 function handleFilterButton(event) {
   const filter = event.currentTarget.value;
   const url = new URL(window.location);
@@ -293,17 +320,20 @@ function handlePaginationButton(event) {
 }
 
 function handleSuggestionButton(event) {
-  const filter = event.currentTarget.value;
-  const url = new URL(window.location);
-
-  url.searchParams.delete("f");
-  url.searchParams.set("f", filter);
-  url.searchParams.delete("q");
-  url.searchParams.delete("p");
-  window.history.pushState({}, "", url);
-  performSearch();
+  updateFilter(event.currentTarget.value);
 }
 
 function hideSuggestions() {
-  searchSuggestionsElement.innerHTML = "";
+  searchSuggestionsElement.style.display = "none";
+}
+
+function highlightSuggestion(index) {
+  const suggestionButtons = searchSuggestionsElement.querySelectorAll(".search-suggestion-item");
+  suggestionButtons.forEach((button, i) => {
+    if (i === index) {
+      button.dataset.state = "active";
+    } else {
+      button.dataset.state = "";
+    }
+  });
 }
