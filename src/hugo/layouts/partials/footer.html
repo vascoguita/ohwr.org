@@ -7,20 +7,19 @@ SPDX-License-Identifier: BSD-3-Clause
 <footer class="bg-light section pb-0">
   <div class="container">
     <div class="row">
-      {{ range slice site.Menus.footer_left site.Menus.footer_middle site.Menus.footer_right }}
+      {{ range slice
+        site.Menus.footer_left
+        site.Menus.footer_middle
+        site.Menus.footer_right
+      }}
       <div class="col-md-3 col-sm-6 mb-5">
         <ul class="list-unstyled footer-list">
           {{ range . }}
           <li>
-            <a
-              href="{{ .URL | relLangURL }}"
-              {{ if strings.HasPrefix .URL `http` }}
-              target="_blank"
-              rel="noopener noreferrer"
-              {{ end }}
-              title="{{ .Name }}">
-              {{ .Name }}
-            </a>
+            {{ partial "link.html" (dict
+              "href" (.URL | relLangURL)
+              "text" .Name)
+            }}
           </li>
           {{ end }}
         </ul>

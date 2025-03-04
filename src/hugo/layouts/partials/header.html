@@ -25,16 +25,11 @@ SPDX-License-Identifier: BSD-3-Clause
         <ul class="navbar-nav mx-auto">
           {{ range site.Menus.main }}
           <li class="nav-item">
-            <a
-              class="nav-link"
-              href="{{ .URL | relLangURL }}"
-              {{ if strings.HasPrefix .URL `http` }}
-              target="_blank"
-              rel="noopener noreferrer"
-              {{ end }}
-              title="{{ .Name }}">
-              {{ .Name }}
-            </a>
+            {{ partial "link.html" (dict
+              "href" (.URL | relLangURL)
+              "text" .Name
+              "class" "nav-link")
+            }}
           </li>
           {{ end }}
         </ul>
