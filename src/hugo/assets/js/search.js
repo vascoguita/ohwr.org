@@ -100,6 +100,10 @@ function displaySearchResults() {
 
   searchResultsElement.innerHTML = paginatedResults.length ? "" : "<p>No results found.</p>";
 
+  if (searchScriptElement.dataset.view === "grid") {
+    searchResultsElement.classList.add("row");
+  }
+
   paginatedResults.forEach(item => {
     searchResultsElement.innerHTML += atob(item.card);
   });

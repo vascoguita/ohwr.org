@@ -17,4 +17,5 @@ search:
       weight: 1
   filter: 'tags'
   placeholder: 'Search for a project'
+  view: 'grid'
 ---

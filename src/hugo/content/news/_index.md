@@ -17,4 +17,5 @@ search:
       weight: 1
   filter: 'project'
   placeholder: 'Search for a news article'
+  view: 'list'
 ---
