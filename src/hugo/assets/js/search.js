@@ -102,11 +102,15 @@ function displaySearchResults() {
 
   if (searchScriptElement.dataset.view === "grid") {
     searchResultsElement.classList.add("row");
+    paginatedResults.forEach(item => {
+      searchResultsElement.innerHTML += atob(item.card);
+    });
+  } else {
+    paginatedResults.forEach(item => {
+      const card = new Card(item.image, item.project, item.title, item.date, item.text, item.url);
+      searchResultsElement.appendChild(card.listViewElement);
+    });
   }
-
-  paginatedResults.forEach(item => {
-    searchResultsElement.innerHTML += atob(item.card);
-  });
 }
 
 function displaySearchFilters(activeFilters, inactiveFilters) {
@@ -352,4 +356,79 @@ function highlightSuggestion(index) {
       button.dataset.state = "";
     }
   });
+}
+
+class Card {
+  constructor(image, project, title, date, text, url) {
+    this.image = image;
+    this.project = project;
+    this.title = title;
+    this.date = date;
+    this.text = text;
+    this.url = url;
+  }
+
+  get listViewElement() {
+    const bodyElement = Object.assign(document.createElement("div"), {
+      className: "card-body"
+    });
+    if (this.project) {
+      const projectElement = document.createElement("h6");
+      projectElement.appendChild(Object.assign(document.createElement("i"), {
+        className: "fas fa-rss"
+      }));
+      projectElement.appendChild(Object.assign(document.createElement("small"), {
+        className: "ml-1",
+        innerText: this.project
+      }));
+      bodyElement.appendChild(projectElement);
+    }
+    const titleElement = document.createElement("h3");
+    titleElement.appendChild(Object.assign(document.createElement("a"), {
+      href: this.url,
+      className: "stretched-link post-title",
+      innerText: this.title
+    }));
+    bodyElement.appendChild(titleElement);
+    if (this.date) {
+      const dateElement = Object.assign(document.createElement("div"), {
+        className: "mb-2"
+      });
+      dateElement.appendChild(Object.assign(document.createElement("time"), {
+        innerText: this.date
+      }));
+      bodyElement.appendChild(dateElement);
+    }
+    const textElement = Object.assign(document.createElement("p"), {
+      className: "card-text",
+      innerText: this.text
+    });
+    bodyElement.appendChild(textElement);
+    const listViewElement = Object.assign(document.createElement("div"), {
+      className: "card interactive-card border-0 shadow-lg mb-4"
+    });
+    if (this.image) {
+      const imageColumnElement = Object.assign(document.createElement("div"), {
+        className: "col-md-3"
+      });
+      const imageElement = Object.assign(document.createElement("img"), {
+        className: "m-3 w-100 mh-100 rounded",
+        src: this.image
+      });
+      imageColumnElement.appendChild(imageElement);
+      const RowElement = Object.assign(document.createElement("div"), {
+        className: "row"
+      });
+      RowElement.appendChild(imageColumnElement);
+      const bodyColumnElement = Object.assign(document.createElement("div"), {
+        className: "col-md-9 p-0 position-static"
+      });
+      bodyColumnElement.appendChild(bodyElement);
+      RowElement.appendChild(bodyColumnElement);
+      listViewElement.appendChild(RowElement);
+    } else {
+      listViewElement.appendChild(bodyElement);
+    }
+    return listViewElement;
+  }
 }
