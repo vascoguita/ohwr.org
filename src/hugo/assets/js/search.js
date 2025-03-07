@@ -12,14 +12,13 @@ const searchButtonElement = document.getElementById("search-button");
 const searchSuggestionsElement = document.getElementById('search-suggestions');
 const searchFilterMenuElement = document.getElementById("search-filter-menu");
 const searchResultsElement = document.getElementById("search-results");
-const searchPaginationElement = document.getElementById("search-pagination");
 
 let fuse;
 let filterFuse;
 let results;
 let suggestions;
 let selectedSuggestionIndex = -1;
-const perPage = 9;
+const paginator;
 
 document.addEventListener("DOMContentLoaded", initializeSearch);
 
@@ -50,6 +49,7 @@ async function initializeSearch() {
   searchInputElement.addEventListener("keydown", handleSearchKeydown);
   searchButtonElement.addEventListener("click", handleSearchButton);
 
+  paginator = new Paginator(document.getElementById("search-pagination"), 9);
   performSearch();
 }
 
@@ -84,7 +84,7 @@ function performSearch() {
     ).filter(filter => !filters.includes(filter))
   );
 
-  displayPagination();
+  paginator.refresh();
 }
 
 function displaySearchInput(query) {
@@ -224,7 +224,7 @@ function displayPagination() {
         type: "button",
         className: "page-link",
         value: page + 1,
-        innerHTML: "&raquo;",
+        innerText: "»",
       });
       nextButton.addEventListener("click", handlePaginationButton);
       nextLi.appendChild(nextButton);
@@ -236,7 +236,7 @@ function displayPagination() {
         type: "button",
         className: "page-link",
         value: total,
-        innerHTML: "&raquo;&raquo;",
+        innerHTML: "»»",
       });
       endButton.addEventListener("click", handlePaginationButton);
       endLi.appendChild(endButton);
@@ -337,9 +337,9 @@ function handlePaginationButton(event) {
   url.searchParams.set("p", page);
   window.history.pushState({}, "", url);
   displaySearchResults();
-  displayPagination();
+  const paginator = new Paginator(Math.ceil(results.length / perPage), page);
+  searchPaginationElement.replaceChildren(paginator.element);
 }
-
 function handleSuggestionButton(event) {
   updateFilter(event.currentTarget.value);
 }
@@ -502,5 +502,83 @@ class ListCard extends Card {
       element.appendChild(body);
     }
     return element;
+  }
+}
+
+class Paginator {
+  constructor(div, perPage) {
+    this.div = div;
+    this.perPage = perPage;
+  }
+
+  element(total, page) {
+    const ul = document.createElement("ul");
+    ul.classList.add("pagination");
+    if (page > 1) {
+      const startLi = document.createElement("li");
+      startLi.classList.add("page-item");
+      const startButton = document.createElement("button");
+      startButton.classList.add("page-link");
+      startButton.value = 1;
+      startButton.innerText = "««";
+      startButton.addEventListener("click", this.handle);
+      startLi.appendChild(startButton);
+      ul.appendChild(startLi);
+      const previousLi = document.createElement("li");
+      previousLi.classList.add("page-item");
+      const previousButton = document.createElement("button");
+      previousButton.classList.add("page-link");
+      previousButton.value = page - 1;
+      previousButton.innerText = "«";
+      previousButton.addEventListener("click", this.handle);
+      previousLi.appendChild(previousButton);
+      ul.appendChild(previousLi);
+    }
+    let startPage = Math.max(1, page - 2);
+    let endPage = Math.min(total, page + 2);
+    if (endPage - startPage < 4) {
+      if (startPage === 1) {
+        endPage = Math.min(total, startPage + 4);
+      } else if (endPage === total) {
+        startPage = Math.max(1, endPage - 4);
+      }
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      const li = document.createElement("li");
+      li.classList.add("page-item");
+      if (i === page) {
+        li.classList.add("active");
+      }
+      const button = document.createElement("button");
+      button.classList.add("page-link");
+      button.value = i;
+      button.innerText = i;
+      button.addEventListener("click", this.handle);
+      li.appendChild(button);
+      ul.appendChild(li);
+    }
+    if (page < total) {
+      const nextLi = document.createElement("li");
+      nextLi.classList.add("page-item");
+      const nextButton = document.createElement("button");
+      nextButton.classList.add("page-link");
+      nextButton.value = page + 1;
+      nextButton.innerText = "»";
+      nextButton.addEventListener("click", this.handle);
+      nextLi.appendChild(nextButton);
+      ul.appendChild(nextLi);
+      const endLi = document.createElement("li");
+      endLi.classList.add("page-item");
+      const endButton = document.createElement("button");
+      endButton.classList.add("page-link");
+      endButton.value = total;
+      endButton.innerText = "»»";
+      endLi.appendChild(endButton);
+      ul.appendChild(endLi);
+    }
+    return ul;
+  }
+
+  handle(event) {
   }
 }
