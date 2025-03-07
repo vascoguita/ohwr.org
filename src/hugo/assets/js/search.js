@@ -103,12 +103,13 @@ function displaySearchResults() {
   if (searchScriptElement.dataset.view === "grid") {
     searchResultsElement.classList.add("row");
     paginatedResults.forEach(item => {
-      searchResultsElement.innerHTML += atob(item.card);
+      const card = new GridCard(item.image, item.project, item.title, item.date, item.text, item.url);
+      searchResultsElement.appendChild(card.element);
     });
   } else {
     paginatedResults.forEach(item => {
-      const card = new Card(item.image, item.project, item.title, item.date, item.text, item.url);
-      searchResultsElement.appendChild(card.listViewElement);
+      const card = new ListCard(item.image, item.project, item.title, item.date, item.text, item.url);
+      searchResultsElement.appendChild(card.element);
     });
   }
 }
@@ -367,68 +368,139 @@ class Card {
     this.text = text;
     this.url = url;
   }
+}
 
-  get listViewElement() {
-    const bodyElement = Object.assign(document.createElement("div"), {
-      className: "card-body"
-    });
-    if (this.project) {
-      const projectElement = document.createElement("h6");
-      projectElement.appendChild(Object.assign(document.createElement("i"), {
-        className: "fas fa-rss"
-      }));
-      projectElement.appendChild(Object.assign(document.createElement("small"), {
-        className: "ml-1",
-        innerText: this.project
-      }));
-      bodyElement.appendChild(projectElement);
-    }
-    const titleElement = document.createElement("h3");
-    titleElement.appendChild(Object.assign(document.createElement("a"), {
-      href: this.url,
-      className: "stretched-link post-title",
-      innerText: this.title
-    }));
-    bodyElement.appendChild(titleElement);
-    if (this.date) {
-      const dateElement = Object.assign(document.createElement("div"), {
-        className: "mb-2"
-      });
-      dateElement.appendChild(Object.assign(document.createElement("time"), {
-        innerText: this.date
-      }));
-      bodyElement.appendChild(dateElement);
-    }
-    const textElement = Object.assign(document.createElement("p"), {
-      className: "card-text",
-      innerText: this.text
-    });
-    bodyElement.appendChild(textElement);
-    const listViewElement = Object.assign(document.createElement("div"), {
-      className: "card interactive-card border-0 shadow-lg mb-4"
-    });
+class GridCard extends Card {
+  get element () {
+    const frame = document.createElement("div")
+    frame.classList.add(
+      "mb-3", "position-relative", "embed-responsive", "embed-responsive-4by3"
+    );
     if (this.image) {
-      const imageColumnElement = Object.assign(document.createElement("div"), {
-        className: "col-md-3"
-      });
-      const imageElement = Object.assign(document.createElement("img"), {
-        className: "m-3 w-100 mh-100 rounded",
-        src: this.image
-      });
-      imageColumnElement.appendChild(imageElement);
-      const RowElement = Object.assign(document.createElement("div"), {
-        className: "row"
-      });
-      RowElement.appendChild(imageColumnElement);
-      const bodyColumnElement = Object.assign(document.createElement("div"), {
-        className: "col-md-9 p-0 position-static"
-      });
-      bodyColumnElement.appendChild(bodyElement);
-      RowElement.appendChild(bodyColumnElement);
-      listViewElement.appendChild(RowElement);
+      const img = document.createElement("img");
+      img.classList.add(
+        "mh-100", "mw-100", "position-absolute", "grid-card-image"
+      );
+      img.src = this.image;
+      frame.appendChild(img);
     } else {
-      listViewElement.appendChild(bodyElement);
+      const svg = document.createElementNS(
+        "http://www.w3.org/2000/svg", "svg"
+      );
+      svg.setAttribute("width", "400");
+      svg.setAttribute("height", "300");
+      svg.classList.add(
+        "mh-100", "mw-100", "position-absolute", "grid-card-image"
+      );
+      const circle = document.createElementNS(
+        "http://www.w3.org/2000/svg", "circle"
+      );
+      circle.setAttribute("cx", "50%");
+      circle.setAttribute("cy", "50%");
+      circle.setAttribute("r", "100");
+      circle.setAttribute(
+        "fill",
+        `hsl(${this.title.split("").reduce(
+          (acc, char) => acc + char.charCodeAt(0), 0
+        ) % 360}, 50%, 30%)`
+      );
+      svg.appendChild(circle);
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg", "text"
+      );
+      text.setAttribute("x", "50%");
+      text.setAttribute("y", "50%");
+      text.setAttribute("dy", "0.35em");
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("fill", "white");
+      text.setAttribute("font-size", "100");
+      text.setAttribute("font-family", "Arial, sans-serif");
+      text.appendChild(document.createTextNode(this.title[0].toUpperCase()));
+      svg.appendChild(text);
+      frame.appendChild(svg);
     }
-    return listViewElement;
+    const body = document.createElement("div");
+    body.classList.add("card-body", "d-flex", "flex-column");
+    body.appendChild(frame);
+    const link = document.createElement("a");
+    link.href = this.url;
+    link.classList.add("stretched-link", "post-title");
+    link.innerText = this.title;
+    const title = document.createElement("h3");
+    title.appendChild(link);
+    body.appendChild(title);
+    const summary = document.createElement("p");
+    summary.classList.add("card-text");
+    summary.innerText = this.text;
+    body.appendChild(summary);
+    const card = document.createElement("div");
+    card.classList.add(
+      "card", "interactive-card", "shadow-lg", "border-0", "h-100"
+    );
+    card.appendChild(body);
+    const element = document.createElement("div");
+    element.classList.add("col-lg-4", "col-sm-6", "mb-5");
+    element.appendChild(card);
+    return element;
+  }
+}
+
+class ListCard extends Card {
+  get element() {
+    const body = document.createElement("div");
+    body.classList.add("card-body");
+    if (this.project) {
+      const project = document.createElement("h6");
+      const icon = document.createElement("i");
+      icon.classList.add("fas", "fa-rss");
+      project.appendChild(icon);
+      const text = document.createElement("small");
+      text.classList.add("ml-1");
+      text.innerText = this.project;
+      project.appendChild(text);
+      body.appendChild(project);
+    }
+    const title = document.createElement("h3");
+    const link = document.createElement("a");
+    link.href = this.url;
+    link.classList.add("stretched-link", "post-title");
+    link.innerText = this.title;
+    title.appendChild(link);
+    body.appendChild(title);
+    if (this.date) {
+      const date = document.createElement("div");
+      date.classList.add("mb-2");
+      const time = document.createElement("time");
+      time.innerText = this.date;
+      date.appendChild(time);
+      body.appendChild(date);
+    }
+    const text = document.createElement("p"); 
+    text.classList.add("card-text");
+    text.innerText = this.text;
+    body.appendChild(text);
+    const element = document.createElement("div");
+    element.classList.add(
+      "card", "interactive-card", "border-0", "shadow-lg", "mb-4"
+    );
+    if (this.image) {
+      const img = document.createElement("img")
+      img.classList.add("m-3", "w-100", "mh-100", "rounded");
+      img.src = this.image;
+      const frame = document.createElement("div");
+      frame.classList.add("col-md-3");
+      frame.appendChild(img);
+      const row = document.createElement("div");
+      row.classList.add("row");
+      row.appendChild(frame);
+      const column = document.createElement("div");
+      column.classList.add("col-md-9", "p-0", "position-static");
+      column.appendChild(body);
+      row.appendChild(column);
+      element.appendChild(row);
+    } else {
+      element.appendChild(body);
+    }
+    return element;
   }
 }
