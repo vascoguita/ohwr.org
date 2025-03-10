@@ -18,7 +18,8 @@ let filterFuse;
 let results;
 let suggestions;
 let selectedSuggestionIndex = -1;
-const paginator;
+const perPage = 9;
+let paginator;
 
 document.addEventListener("DOMContentLoaded", initializeSearch);
 
@@ -48,8 +49,7 @@ async function initializeSearch() {
   searchInputElement.addEventListener("input", handleSearchInput);
   searchInputElement.addEventListener("keydown", handleSearchKeydown);
   searchButtonElement.addEventListener("click", handleSearchButton);
-
-  paginator = new Paginator(document.getElementById("search-pagination"), 9);
+  paginator = new Paginator(document.getElementById("search-pagination"));
   performSearch();
 }
 
@@ -57,6 +57,7 @@ function performSearch() {
   const url = new URL(window.location);
   const query = url.searchParams.get("q");
   const filters = url.searchParams.getAll("f");
+  const page = parseInt(url.searchParams.get("p"), 10) || 1;
 
   displaySearchInput(query);
 
@@ -75,7 +76,7 @@ function performSearch() {
 
   results = [...results].sort((a, b) => b.weight - a.weight);
 
-  displaySearchResults(results);
+  paginator.show(Math.ceil(results.length / perPage), page);
 
   displaySearchFilters(
     filters,
@@ -83,35 +84,32 @@ function performSearch() {
       result[searchScriptElement.dataset.filter] || []
     ).filter(filter => !filters.includes(filter))
   );
-
-  paginator.refresh();
 }
 
 function displaySearchInput(query) {
   searchInputElement.value = query;
 }
 
-function displaySearchResults() {
-  const url = new URL(window.location);
-  const page = parseInt(url.searchParams.get("p"), 10) || 1;
-  const startIndex = (page - 1) * perPage;
-  const endIndex = startIndex + perPage;
+function displaySearchResults(startIndex, endIndex) {
   const paginatedResults = results.slice(startIndex, endIndex);
 
   searchResultsElement.innerHTML = paginatedResults.length ? "" : "<p>No results found.</p>";
 
   if (searchScriptElement.dataset.view === "grid") {
     searchResultsElement.classList.add("row");
-    paginatedResults.forEach(item => {
-      const card = new GridCard(item.image, item.project, item.title, item.date, item.text, item.url);
-      searchResultsElement.appendChild(card.element);
-    });
-  } else {
-    paginatedResults.forEach(item => {
-      const card = new ListCard(item.image, item.project, item.title, item.date, item.text, item.url);
-      searchResultsElement.appendChild(card.element);
-    });
   }
+  paginatedResults.forEach(item => {
+    const card = Card.create(
+      searchScriptElement.dataset.view,
+      item.image,
+      item.project,
+      item.title,
+      item.date,
+      item.text,
+      item.url
+    );
+    searchResultsElement.appendChild(card.element);
+  });
 }
 
 function displaySearchFilters(activeFilters, inactiveFilters) {
@@ -152,97 +150,6 @@ function displaySearchFilters(activeFilters, inactiveFilters) {
     button.addEventListener("click", handleFilterButton);
     searchFilterMenuElement.appendChild(button);
   });
-}
-
-function displayPagination() {
-  const url = new URL(window.location);
-  const page = parseInt(url.searchParams.get("p"), 10) || 1;
-  const total = Math.ceil(results.length / perPage);
-  searchPaginationElement.innerHTML = "";
-
-  if (total > 1) {
-    if (page > 1) {
-      const startLi = Object.assign(document.createElement("li"), {
-        className: "page-item",
-      });
-      const startButton = Object.assign(document.createElement("button"), {
-        type: "button",
-        className: "page-link",
-        value: 1,
-        innerHTML: "&laquo;&laquo;",
-      });
-      startButton.addEventListener("click", handlePaginationButton);
-      startLi.appendChild(startButton);
-      searchPaginationElement.appendChild(startLi);
-      const previousLi = Object.assign(document.createElement("li"), {
-        className: "page-item",
-      });
-      const previousButton = Object.assign(document.createElement("button"), {
-        type: "button",
-        className: "page-link",
-        value: page - 1,
-        innerHTML: "&laquo;",
-      });
-      previousButton.addEventListener("click", handlePaginationButton);
-      previousLi.appendChild(previousButton);
-      searchPaginationElement.appendChild(previousLi);
-    }
-
-    let startPage = Math.max(1, page - 2);
-    let endPage = Math.min(total, page + 2);
-
-    if (endPage - startPage < 4) {
-      if (startPage === 1) {
-        endPage = Math.min(total, startPage + 4);
-      } else if (endPage === total) {
-        startPage = Math.max(1, endPage - 4);
-      }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      const li = Object.assign(document.createElement("li"), {
-        className: "page-item",
-      });
-      if (i === page) {
-        li.classList.add("active");
-      }
-      const button = Object.assign(document.createElement("button"), {
-        type: "button",
-        className: "page-link",
-        value: i,
-        innerText: i,
-      });
-      button.addEventListener("click", handlePaginationButton);
-      li.appendChild(button);
-      searchPaginationElement.appendChild(li);
-    }
-    if (page < total) {
-      const nextLi = Object.assign(document.createElement("li"), {
-        className: "page-item",
-      });
-      const nextButton = Object.assign(document.createElement("button"), {
-        type: "button",
-        className: "page-link",
-        value: page + 1,
-        innerText: "»",
-      });
-      nextButton.addEventListener("click", handlePaginationButton);
-      nextLi.appendChild(nextButton);
-      searchPaginationElement.appendChild(nextLi);
-      const endLi = Object.assign(document.createElement("li"), {
-        className: "page-item",
-      });
-      const endButton = Object.assign(document.createElement("button"), {
-        type: "button",
-        className: "page-link",
-        value: total,
-        innerHTML: "»»",
-      });
-      endButton.addEventListener("click", handlePaginationButton);
-      endLi.appendChild(endButton);
-      searchPaginationElement.appendChild(endLi);
-    }
-  }
 }
 
 function handleSearchInput(event) {
@@ -330,16 +237,6 @@ function handleFilterButton(event) {
   performSearch();
 }
 
-function handlePaginationButton(event) {
-  const page = event.currentTarget.value;
-  const url = new URL(window.location);
-
-  url.searchParams.set("p", page);
-  window.history.pushState({}, "", url);
-  displaySearchResults();
-  const paginator = new Paginator(Math.ceil(results.length / perPage), page);
-  searchPaginationElement.replaceChildren(paginator.element);
-}
 function handleSuggestionButton(event) {
   updateFilter(event.currentTarget.value);
 }
@@ -367,6 +264,17 @@ class Card {
     this.date = date;
     this.text = text;
     this.url = url;
+  }
+
+  static create(type, image, project, title, date, text, url) {
+    switch (type) {
+      case "grid":
+        return new GridCard(image, project, title, date, text, url);
+      case "list":
+        return new ListCard(image, project, title, date, text, url);
+      default:
+        throw new Error(`Invalid card type: ${type}`);
+    }
   }
 }
 
@@ -506,79 +414,49 @@ class ListCard extends Card {
 }
 
 class Paginator {
-  constructor(div, perPage) {
-    this.div = div;
-    this.perPage = perPage;
+  constructor(element) {
+    this.element = element;
+    this.handle = this.handle.bind(this);
   }
 
-  element(total, page) {
+  button(value, text, active) {
+    const li = document.createElement("li");
+    li.className = `page-item${active ? " active" : ""}`;
+    const button = document.createElement("button");
+    button.classList.add("page-link");
+    button.value = value;
+    button.innerText = text;
+    button.addEventListener("click", this.handle);
+    li.appendChild(button);
+    return li;
+  }
+
+  show(total, page) {
     const ul = document.createElement("ul");
     ul.classList.add("pagination");
     if (page > 1) {
-      const startLi = document.createElement("li");
-      startLi.classList.add("page-item");
-      const startButton = document.createElement("button");
-      startButton.classList.add("page-link");
-      startButton.value = 1;
-      startButton.innerText = "««";
-      startButton.addEventListener("click", this.handle);
-      startLi.appendChild(startButton);
-      ul.appendChild(startLi);
-      const previousLi = document.createElement("li");
-      previousLi.classList.add("page-item");
-      const previousButton = document.createElement("button");
-      previousButton.classList.add("page-link");
-      previousButton.value = page - 1;
-      previousButton.innerText = "«";
-      previousButton.addEventListener("click", this.handle);
-      previousLi.appendChild(previousButton);
-      ul.appendChild(previousLi);
+      ul.appendChild(this.button(1, "««", false));
+      ul.appendChild(this.button(page - 1, "«", false));
     }
-    let startPage = Math.max(1, page - 2);
-    let endPage = Math.min(total, page + 2);
-    if (endPage - startPage < 4) {
-      if (startPage === 1) {
-        endPage = Math.min(total, startPage + 4);
-      } else if (endPage === total) {
-        startPage = Math.max(1, endPage - 4);
-      }
-    }
+    const startPage = Math.max(1, Math.min(page - 2, total - 4));
+    const endPage = Math.min(total, Math.max(page + 2, 5));
     for (let i = startPage; i <= endPage; i++) {
-      const li = document.createElement("li");
-      li.classList.add("page-item");
-      if (i === page) {
-        li.classList.add("active");
-      }
-      const button = document.createElement("button");
-      button.classList.add("page-link");
-      button.value = i;
-      button.innerText = i;
-      button.addEventListener("click", this.handle);
-      li.appendChild(button);
-      ul.appendChild(li);
+      ul.appendChild(this.button(i, i, i === page));
     }
     if (page < total) {
-      const nextLi = document.createElement("li");
-      nextLi.classList.add("page-item");
-      const nextButton = document.createElement("button");
-      nextButton.classList.add("page-link");
-      nextButton.value = page + 1;
-      nextButton.innerText = "»";
-      nextButton.addEventListener("click", this.handle);
-      nextLi.appendChild(nextButton);
-      ul.appendChild(nextLi);
-      const endLi = document.createElement("li");
-      endLi.classList.add("page-item");
-      const endButton = document.createElement("button");
-      endButton.classList.add("page-link");
-      endButton.value = total;
-      endButton.innerText = "»»";
-      endLi.appendChild(endButton);
-      ul.appendChild(endLi);
+      ul.appendChild(this.button(page + 1, "»", false));
+      ul.appendChild(this.button(total, "»»", false));
     }
-    return ul;
+    this.element.replaceChildren(ul);
+    displaySearchResults((page - 1) * perPage, (page - 1) * perPage + perPage);
   }
 
   handle(event) {
+    const page = parseInt(event.currentTarget.value, 10);
+    const url = new URL(window.location);
+
+    url.searchParams.set("p", page);
+    window.history.pushState({}, "", url);
+    this.show(Math.ceil(results.length / perPage), page);
   }
 }
