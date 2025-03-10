@@ -175,13 +175,9 @@ a.search-filter-button[data-state="active"] {
 .search-suggestion-item {
   border: 0;
   background-color: $white;
-  &:hover {
+  &:hover,
+  &:active {
     background-color: $secondary-color;
     color: $white !important;
   }
-}
-
-.search-suggestion-item[data-state="active"] {
-  background-color: $secondary-color;
-  color: $white !important;
 }

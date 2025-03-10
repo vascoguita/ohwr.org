@@ -7,9 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 import Fuse from "https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.mjs";
 
 const searchScriptElement = document.getElementById("search-script");
-const searchInputElement = document.getElementById("search-input");
 const searchButtonElement = document.getElementById("search-button");
-const searchSuggestionsElement = document.getElementById('search-suggestions');
 const searchFilterMenuElement = document.getElementById("search-filter-menu");
 const searchResultsElement = document.getElementById("search-results");
 
@@ -17,9 +15,9 @@ let fuse;
 let filterFuse;
 let results;
 let suggestions;
-let selectedSuggestionIndex = -1;
 const perPage = 9;
 let paginator;
+let input;
 
 document.addEventListener("DOMContentLoaded", initializeSearch);
 
@@ -46,10 +44,12 @@ async function initializeSearch() {
 
   filterFuse = new Fuse(filterData, {minMatchCharLength: 2});
 
-  searchInputElement.addEventListener("input", handleSearchInput);
-  searchInputElement.addEventListener("keydown", handleSearchKeydown);
   searchButtonElement.addEventListener("click", handleSearchButton);
   paginator = new Paginator(document.getElementById("search-pagination"));
+  suggestions = new Suggestions(document.getElementById('search-suggestions'));
+  input = new Input(document.getElementById("search-input"), suggestions);
+  const thisurl = new URL(window.location);
+  input.show(thisurl.searchParams.get("q"));
   performSearch();
 }
 
@@ -59,9 +59,7 @@ function performSearch() {
   const filters = url.searchParams.getAll("f");
   const page = parseInt(url.searchParams.get("p"), 10) || 1;
 
-  displaySearchInput(query);
-
-  hideSuggestions();
+  suggestions.hide();
 
   results = query ? fuse.search(query).map(({ item }) => item) : fuse._docs;
 
@@ -86,27 +84,29 @@ function performSearch() {
   );
 }
 
-function displaySearchInput(query) {
-  searchInputElement.value = query;
-}
-
 function displaySearchResults(startIndex, endIndex) {
   const paginatedResults = results.slice(startIndex, endIndex);
 
+  if (paginatedResults.length) {
+    searchResultsElement.classList.remove("row");
+  }
   searchResultsElement.innerHTML = paginatedResults.length ? "" : "<p>No results found.</p>";
 
   if (searchScriptElement.dataset.view === "grid") {
     searchResultsElement.classList.add("row");
-    paginatedResults.forEach(item => {
-      const card = new GridCard(item.image, item.project, item.title, item.date, item.text, item.url);
-      searchResultsElement.appendChild(card.element);
-    });
-  } else {
-    paginatedResults.forEach(item => {
-      const card = new ListCard(item.image, item.project, item.title, item.date, item.text, item.url);
-      searchResultsElement.appendChild(card.element);
-    });
   }
+  paginatedResults.forEach(item => {
+    const card = Card.create(
+      searchScriptElement.dataset.view,
+      item.image,
+      item.project,
+      item.title,
+      item.date,
+      item.text,
+      item.url
+    );
+    searchResultsElement.appendChild(card.element);
+  });
 }
 
 function displaySearchFilters(activeFilters, inactiveFilters) {
@@ -149,34 +149,8 @@ function displaySearchFilters(activeFilters, inactiveFilters) {
   });
 }
 
-function handleSearchInput(event) {
-  const url = new URL(window.location);
-  const filters = url.searchParams.getAll("f");
-  const inputValue = event.target.value.trim();
-  suggestions = inputValue ? filterFuse.search(inputValue).map(({ item }) => item) : [];
-  suggestions = suggestions.filter(filter => !filters.includes(filter)).slice(0, 8);
-  displaySuggestions(suggestions);
-}
-
-function handleSearchKeydown(event) {
-  const inputValue = event.target.value.trim();
-  if (event.key === "Enter") {
-    if (selectedSuggestionIndex >= 0) {
-      updateFilter(suggestions[selectedSuggestionIndex]);
-    } else {
-      updateQuery(inputValue);
-    }
-  } else if (event.key === "ArrowDown") {
-    selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestions.length;
-    highlightSuggestion(selectedSuggestionIndex);
-  } else if (event.key === "ArrowUp") {
-    selectedSuggestionIndex = (selectedSuggestionIndex - 1 + suggestions.length) % suggestions.length;
-    highlightSuggestion(selectedSuggestionIndex);
-  }
-}
-
 function handleSearchButton() {
-  updateQuery(searchInputElement.value.trim());
+  updateQuery(input.element.value.trim());
 }
 
 function updateQuery(query) {
@@ -190,24 +164,6 @@ function updateQuery(query) {
   url.searchParams.delete("p");
   window.history.pushState({}, "", url);
   performSearch();
-}
-
-function displaySuggestions(suggestions) {
-  selectedSuggestionIndex = -1;
-  searchSuggestionsElement.querySelectorAll(".search-suggestion-item").forEach(item => item.remove());
-  suggestions.forEach(suggestion => {
-    const button = document.createElement("button");
-    button.className = "search-suggestion-item text-muted pl-3 row w-100 m-0";
-    button.innerText = suggestion;
-    button.value = suggestion;
-    button.addEventListener("click", handleSuggestionButton);
-    searchSuggestionsElement.appendChild(button);
-  });
-  if (suggestions.length) {
-    searchSuggestionsElement.style.display = "block";
-  } else {
-    searchSuggestionsElement.style.display = "none";
-  }
 }
 
 function updateFilter(filter) {
@@ -238,10 +194,6 @@ function handleSuggestionButton(event) {
   updateFilter(event.currentTarget.value);
 }
 
-function hideSuggestions() {
-  searchSuggestionsElement.style.display = "none";
-}
-
 function highlightSuggestion(index) {
   const suggestionButtons = searchSuggestionsElement.querySelectorAll(".search-suggestion-item");
   suggestionButtons.forEach((button, i) => {
@@ -253,6 +205,106 @@ function highlightSuggestion(index) {
   });
 }
 
+class Input {
+  constructor(element, suggestions) {
+    this.element = element;
+    this.suggestions = suggestions;
+    this.handle = this.handle.bind(this);
+    this.element.addEventListener("keydown", this.handle);
+    this.element.addEventListener("keydown", this.suggestions.handleKeydown);
+    this.element.addEventListener("input", this.suggestions.handleInput);
+  }
+
+  show(query){
+    this.element.value = query;
+  }
+
+  handle(event) {
+    if (event.key === "Enter" && !this.suggestions.selected) {
+      updateQuery(this.element.value.trim());
+    }
+  }
+}
+
+class Suggestions {
+  constructor(element) {
+    this.element = element;
+    this.selected = 0;
+    this.handleInput = this.handleInput.bind(this);
+    this.suggestions = [];
+  }
+
+  hide() {
+    this.element.style.display = "none";
+  }
+
+  show() {
+    this.element.querySelectorAll(".search-suggestion-item").forEach(item => item.remove());
+    this.suggestions.forEach(item => {
+      const suggestion = new Suggestion(item);
+      this.element.appendChild(suggestion.element);
+    });
+    if (this.suggestions.length) {
+      this.element.style.display = "block";
+    } else {
+      this.hide();
+    }
+  }
+
+  handleInput(event) {
+    const query = event.target.value.trim();
+    const url = new URL(window.location);
+    const filters = url.searchParams.getAll("f");
+    this.suggestions = [];
+    if (query) {
+      this.suggestions = filterFuse
+        .search(query)
+        .map(({ item }) => item)
+        .filter(filter => !filters.includes(filter))
+        .slice(0, 8);
+    }
+    this.selected = 0;
+    this.show();
+  }
+
+  handleKeydown(event) {
+    if (event.key === "Enter" && this.selected ) {
+        updateFilter(this.suggestions[this.selected - 1]);
+    } else if (event.key === "ArrowDown") {
+      this.selected = (this.selected + 1) % suggestions.length ;
+      highlightSuggestion(this.selected - 1);
+    } else if (event.key === "ArrowUp") {
+      this.selected = (this.selected - 1 + suggestions.length) % suggestions.length;
+      highlightSuggestion(this.selected - 1);
+    }
+  }
+}
+
+class Suggestion {
+  constructor(suggestion) {
+    this.handle = this.handle.bind(this);
+    this.element = document.createElement("button");
+    this.element.classList.add(
+      "search-suggestion-item", "text-muted", "pl-3", "row", "w-100", "m-0"
+    );
+    this.element.innerText = suggestion;
+    this.element.value = suggestion;
+    this.element.addEventListener("click", this.handle);
+  }
+
+  active(active){
+    if (active) {
+      this.element.classList.add("active");
+    } else {
+      this.element.classList.remove("active");
+    }
+  }
+
+  handle(){
+    updateFilter(this.element.value);
+  }
+}
+
 class Card {
   constructor(image, project, title, date, text, url) {
     this.image = image;
@@ -261,6 +313,17 @@ class Card {
     this.date = date;
     this.text = text;
     this.url = url;
+  }
+
+  static create(type, image, project, title, date, text, url) {
+    switch (type) {
+      case "grid":
+        return new GridCard(image, project, title, date, text, url);
+      case "list":
+        return new ListCard(image, project, title, date, text, url);
+      default:
+        throw new Error(`Invalid card type: ${type}`);
+    }
   }
 }
 
