@@ -37,13 +37,10 @@ SPDX-License-Identifier: BSD-3-Clause
   </div>
 </footer>
 
-{{ with .Params.search }}
+{{ if .Params.search }}
 <script
   id="search-script"
   src="{{ (resources.Get `js/search.js`).RelPermalink }}"
-  type="module"
-  data-keys="{{ .keys | jsonify }}"
-  data-filter="{{ .filter }}"
-  data-view="{{ .view }}">
+  type="module">
 </script>
 {{ end }}

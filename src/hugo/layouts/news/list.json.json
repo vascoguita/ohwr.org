@@ -19,4 +19,10 @@
   {{- end -}}
   {{- $index = $index | append $item -}}
 {{- end -}}
-{{- $index | jsonify -}}
+{{- $config := dict
+  "keys" .Params.search.keys
+  "filter" .Params.search.filter
+  "view" .Params.search.view
+  "index" $index
+-}}
+{{- $config | jsonify -}}

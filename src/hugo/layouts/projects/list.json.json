@@ -23,4 +23,13 @@
     {{- end -}}
   {{- $index = $index | append $item -}}
 {{- end -}}
-{{- $index | jsonify -}}
+{{- $config := dict
+  "keys" (slice
+    (dict "name" "title" "weight" 3)
+    (dict "name" "tags" "weight" 2)
+    (dict "name" "content" "weight" 1))
+  "filter" .Params.search.filter
+  "view" .Params.search.view
+  "index" $index
+-}}
+{{- $config | jsonify -}}
