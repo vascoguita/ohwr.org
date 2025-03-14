@@ -7,9 +7,6 @@ SPDX-License-Identifier: BSD-3-Clause
 <meta charset="utf-8">
 <title>{{ .Title | default site.Title }}</title>
 
-{{ if ne site.BaseURL "http://localhost:1313/" }}
-<base href="{{ site.BaseURL }}">
-{{ end }}
 <link rel="canonical" href="{{ .Permalink }}" itemprop="url" />
 <link
   rel="shortcut icon"
