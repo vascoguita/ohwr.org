@@ -15,13 +15,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     threshold: 0,
     keys: config.keys
   });
-  const search = new Search(fuse,
-    new SearchInput(document.getElementById("search-input"), url.searchParams.get("q")),
-    new SearchSuggestions(document.getElementById("search-suggestions")),
-    new SearchPagination(document.getElementById("search-pagination")),
-    new SearchButton(document.getElementById("search-button")),
-    new SearchFilters(document.getElementById("search-filters")),
-    new SearchResults(document.getElementById("search-results"), config.view)
+  const results = new SearchResults(
+    document.getElementById("search-results"), config.view
+  );
+  const input = new SearchInput(
+    document.getElementById("search-input"), url.searchParams.get("q")
+  );
+  const suggestions = new SearchSuggestions(
+    document.getElementById("search-suggestions")
+  );
+  const pagination = new SearchPagination(
+    document.getElementById("search-pagination"), results
+  );
+  const button = new SearchButton(document.getElementById("search-button"));
+  const filters = new SearchFilters(
+    document.getElementById("search-filters"), config.filter
+  );
+  const search = new Search(
+    fuse, input, suggestions, pagination, button, filters, results
   );
   search.search();
   search.show(parseInt(url.searchParams.get("p"), 10) || 1);
@@ -29,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 class Search {
   constructor(
-    fuse, input, suggestions, pagination, button, filters, results,
+    fuse, input, suggestions, pagination, button, filters, results
   ) {
     this.fuse = fuse;
     this.input = input;
@@ -38,31 +49,28 @@ class Search {
     this.button = button;
     this.filters = filters;
     this.results = results;
-    this.cache = [];
 
     this.handleInputKeydown = this.handleInputKeydown.bind(this);
     this.input.element.addEventListener("keydown", this.handleInputKeydown);
 
     this.handleButtonClick = this.handleButtonClick.bind(this);
     this.button.element.addEventListener("click", this.handleButtonClick);
-  
-    this.handlePaginationClick = this.handlePaginationClick.bind(this);
-    this.pagination.callback = this.handlePaginationClick;
   }
 
   search() {
+    let results;
     if (this.input.value) {
-      this.cache = this.fuse.search(this.input.value).map(({ item }) => item);
+      results = this.fuse.search(this.input.value).map(({ item }) => item);
     } else {
-      this.cache = this.fuse._docs;
+      results = this.fuse._docs;
     }
-    this.cache = [...this.cache].sort((a, b) => {
+    this.results.results = [...results].sort((a, b) => {
       return (b.weight || 0) - (a.weight || 0);
     });
   }
 
   show(page = 1) {
-    this.results.results = this.pagination.show(this.cache, page);
+    this.pagination.show(Math.ceil(this.results.results.length / 9), page);
   }
 
   handleInputKeydown(event) {
@@ -75,10 +83,6 @@ class Search {
   handleButtonClick() {
     this.search();
     this.show();
-  }
-
-  handlePaginationClick(event) {
-    this.show(parseInt(event.currentTarget.value, 10));
   }
 }
 
@@ -147,8 +151,9 @@ class SearchSuggestions {
 }
 
 class SearchPagination {
-  constructor(element) {
+  constructor(element, results) {
     this.element = element;
+    this.results = results;
     this.handleButtonClick = this.handleButtonClick.bind(this);
   }
 
@@ -171,14 +176,12 @@ class SearchPagination {
     button.value = value;
     button.innerText = text;
     button.addEventListener("click", this.handleButtonClick);
-    button.addEventListener("click", this.callback);
     li.appendChild(button);
     return li;
   }
 
-  show(results, page) {
+  show(total, page) {
     this.param = page;
-    const total = Math.ceil(results.length / 9);
     const ul = document.createElement("ul");
     ul.classList.add("pagination");
     if (page > 1) {
@@ -195,11 +198,14 @@ class SearchPagination {
       ul.appendChild(this.button(total, "»»", false));
     }
     this.element.replaceChildren(ul);
-    return results.slice((page - 1) * 9,  page * 9);
+    this.results.show((page - 1) * 9, page * 9);
   }
 
   handleButtonClick(event) {
-    this.param = parseInt(event.currentTarget.value, 10);
+    this.show(
+      Math.ceil(this.results.results.length / 9),
+      parseInt(event.currentTarget.value, 10)
+    );
   }
 }
 
@@ -210,8 +216,81 @@ class SearchButton {
 }
 
 class SearchFilters {
-  constructor(element) {
+  constructor(element, filter) {
     this.element = element;
+    this.filter = filter;
+  }
+
+  show(activeFilters, inactiveFilters) {
+    searchFilterMenuElement.innerHTML = "";
+
+    if (activeFilters.length) {
+      this.element.classList.add("show");
+    }
+
+    activeFilters.map(item => {
+      const activeFilter = new SearchFilter(item);
+      const button = Object.assign(document.createElement("button"), {
+        type: "button",
+        className: "search-filter-button",
+        value: item,
+        innerHTML: `<i class="fas fa-times mr-1"></i>${item}`
+      });
+      button.dataset.state = "active";
+      button.addEventListener("click", handleFilterButton);
+      searchFilterMenuElement.appendChild(button);
+    });
+
+    inactiveFilters = Object.values(
+      inactiveFilters.reduce((acc, filter) => {
+        acc[filter] = acc[filter] || { filter, count: 0 };
+        acc[filter].count++;
+        return acc;
+      }, {})
+    ).sort((a, b) => b.count - a.count);
+
+    inactiveFilters.forEach(item => {
+      const button = Object.assign(document.createElement("button"), {
+        type: "button",
+        className: "search-filter-button",
+        value: item.filter,
+        innerHTML: `${item.filter}
+          <span class="badge badge-filter ml-1">${item.count}</span>`
+      });
+      button.addEventListener("click", handleFilterButton);
+      searchFilterMenuElement.appendChild(button);
+    });
+  }
+
+}
+
+class SearchFilter {
+  constructor(filter, count) {
+    this.filter = filter;
+    this.count = count;
+  }
+
+  get activeView() {
+    const i = document.createElement("i");
+    i.classList.add("fas", "fa-times", "mr-1");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.classList.add("search-filter-button", "active");
+    button.value = this.filter;
+    button.replaceChildren(i, document.createTextNode(this.filter));
+    return button;
+  }
+
+  get inactiveView() {
+    const span = document.createElement("span");
+    span.classList.add("badge", "badge-filter", "ml-1");
+    span.innerText = this.count;
+    const button = document.createElement("button");
+    button.type = "button"
+    button.classList.add("search-filter-button");
+    button.value = this.filter;
+    button.replaceChildren(document.createTextNode(this.filter), span);
+    return button;
   }
 }
 
@@ -219,6 +298,11 @@ class SearchResults {
   constructor(element, view) {
     this.element = element;
     this.view = view;
+    this.results = [];
+  }
+
+  get results() {
+    return this._results;
   }
 
   set results(results) {
@@ -234,18 +318,18 @@ class SearchResults {
     } else {
       this._results = [];
     }
-    this.show();
   }
 
-  show() {
-    if (this._results.length) {
+  show(start, end) {
+    const results = this.results.slice(start, end);
+    if (results.length) {
       let cards;
       if (this.view === "grid") {
         this.element.classList.add("row");
-        cards = this._results.map(result => result.gridView);
+        cards = results.map(result => result.gridView);
       } else if (this.view === "list") {
         this.element.classList.remove("row");
-        cards = this._results.map(result => result.listView);
+        cards = results.map(result => result.listView);
       }
       this.element.replaceChildren(...cards);
     } else {
